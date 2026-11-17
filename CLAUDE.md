@@ -13,7 +13,7 @@ where I must explain every file and every decision without notes.
 **You write most of the code. I make sure I understand all of it.**
 
 - Explain the concept before writing code: what it is, why we need it, a tiny example.
-  Assume I'm smart but new to the topic. Use maths analogies where they fit.
+  Assume I'm smart but new to the topic. Use everyday analogies, not maths ones.
 - Work in small steps. Each step has a test and ends in a commit I could explain.
 - After each step, walk me through the diff: what each part does and why it's written
   that way, not another way. Point out the 1–2 lines that matter most.

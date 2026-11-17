@@ -22,3 +22,27 @@ dev = [
     "pytest>=9.2.0",
     "ruff>=0.17.5",
 ]
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+# The brief is a source document, not code to reformat.
+extend-exclude = ["docs"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors: basic style problems
+    "W",   # pycodestyle warnings: whitespace
+    "F",   # pyflakes: unused imports, undefined names
+    "I",   # isort: import order
+    "UP",  # pyupgrade: use modern Python syntax
+    "B",   # flake8-bugbear: common bug patterns
+]
+
+[tool.mypy]
+strict = true
+python_version = "3.13"
+
+[tool.pytest]
+testpaths = ["tests"]
+addopts = ["--strict-markers"]

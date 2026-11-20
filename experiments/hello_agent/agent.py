@@ -35,7 +35,9 @@ def get_now() -> dict[str, str]:
 
 
 root_agent = Agent(
-    model="gemini-flash-latest",
+    # Exact model, not the moving "gemini-flash-latest" alias: on 2026-11-20 the
+    # alias (and 3.7/3.8) returned 503 "high demand"; 3.6 answered in ~3 s.
+    model="gemini-3.6-flash",
     name="hello_agent",
     description="Answers questions about the current date and time.",
     instruction=(

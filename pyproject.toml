@@ -44,6 +44,8 @@ select = [
 [tool.mypy]
 strict = true
 python_version = "3.13"
+# Checked by a plain `mypy` run (terminal, pre-commit, CI).
+files = ["planner", "experiments", "tests"]
 
 [tool.pytest]
 testpaths = ["tests"]

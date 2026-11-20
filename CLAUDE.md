@@ -45,7 +45,7 @@ uv sync                 # install dependencies
 uv run pytest           # tests
 uv run ruff check .     # lint
 uv run ruff format .    # format
-uv run mypy planner     # type check
+uv run mypy             # type check (folders set in pyproject.toml)
 ```
 
 Run lint, type checks and tests before every commit. Never commit with failing checks.

@@ -11,6 +11,12 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
+  # Scans staged changes for secrets (API keys, tokens) in hundreds of formats.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+
   # Our own tools, run through uv so they use the exact versions in uv.lock
   # and can see the project's dependencies (mypy needs them for types).
   - repo: local

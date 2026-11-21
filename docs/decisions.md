@@ -55,3 +55,35 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** gitleaks as a pre-commit hook.
 - **Alternatives:** only `.gitignore` and `detect-private-key`.
 - **Why:**
+
+## Phase 2: schemas and calendar backends
+
+### Pydantic as a direct dependency
+- **Chose:** `pydantic` listed in our own `pyproject.toml`.
+- **Alternatives:** rely on the copy that ADK already installs.
+- **Why:**
+
+### Times: timezone required, stored in UTC
+- **Chose:** reject naive datetimes; convert every time to UTC when an object is created.
+- **Alternatives:** accept naive times and assume Zurich; store Zurich local time.
+- **Why:**
+
+### Immutable schemas (`frozen=True`)
+- **Chose:** objects cannot be changed after creation; changes make a new object.
+- **Alternatives:** normal mutable objects (Pydantic's default).
+- **Why:**
+
+### Unknown fields are an error (`extra="forbid"`)
+- **Chose:** reject any field the schema doesn't define.
+- **Alternatives:** silently ignore unknown fields (Pydantic's default).
+- **Why:**
+
+### Ownership as explicit fields
+- **Chose:** `created_by_planner: bool` and `plan_id` on `Event`.
+- **Alternatives:** a general `tags: dict[str, str]`, mirroring Google's extended properties.
+- **Why:**
+
+### Pydantic mypy plugin
+- **Chose:** `plugins = ["pydantic.mypy"]`.
+- **Alternatives:** plain mypy, which doesn't know Pydantic rules such as `frozen`.
+- **Why:**

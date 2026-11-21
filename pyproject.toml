@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "google-adk>=2.15.0",
+    "pydantic>=2.14.4",
 ]
 
 [build-system]
@@ -46,6 +47,8 @@ strict = true
 python_version = "3.13"
 # Checked by a plain `mypy` run (terminal, pre-commit, CI).
 files = ["planner", "experiments", "tests"]
+# Teaches mypy Pydantic rules, e.g. that frozen models cannot be assigned to.
+plugins = ["pydantic.mypy"]
 
 [tool.pytest]
 testpaths = ["tests"]

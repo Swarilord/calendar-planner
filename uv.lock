@@ -139,6 +139,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "google-adk" },
+    { name = "pydantic" },
 ]
 
 [package.dev-dependencies]
@@ -150,7 +151,10 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "google-adk", specifier = ">=2.15.0" }]
+requires-dist = [
+    { name = "google-adk", specifier = ">=2.15.0" },
+    { name = "pydantic", specifier = ">=2.14.4" },
+]
 
 [package.metadata.requires-dev]
 dev = [

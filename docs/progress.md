@@ -74,6 +74,37 @@
 - Phase 2: Pydantic schemas, `CalendarBackend`, `FakeCalendar`.
 - Later (Phase 4): give the real agent a timeout and a clear error when Gemini is down.
 
+## 2026-11-22 — Phase 2 (schemas, CalendarBackend, FakeCalendar), done
+
+**Done**
+- `docs/decisions.md` is updated during work: Chose + Alternatives filled in,
+  Why left for me (rule added to CLAUDE.md).
+- `planner/common.py`: `Schema` base (frozen, extra="forbid") and `UtcDatetime`
+  (timezone required, converted to UTC). Pydantic 2.14.4 as a direct dependency,
+  pydantic mypy plugin on.
+- `planner/calendar/models.py`: `NewEvent`, `Event` (id, `created_by_planner`,
+  `plan_id`), `EventChanges` (None = leave as is).
+- `planner/calendar/backend.py`: `CalendarBackend` Protocol plus `EventNotFoundError`
+  and `NotOwnedError`.
+- `planner/calendar/fake.py`: `FakeCalendar`. In-memory dict, JSON loading,
+  deterministic ids, half-open overlap, updates rebuilt with `model_validate`, and
+  one ownership gate (`_owned_event`) for update and delete.
+- `planner/parser/schemas.py`: `Task`, `Window`, `PlanRequest`. Rejects nonsense on
+  any calendar; calendar-specific infeasibility is left to the solver. Times of day
+  stay local.
+- 60 tests. Break-tests confirmed the ownership gate, the interface fit (mypy), the
+  overlap boundary, the timezone and horizon checks.
+
+**Problems found**
+- A same-length rename restored within one second left a stale `.mypy_cache`, so
+  mypy reported errors in correct code. Clear `__pycache__` and `.mypy_cache` after
+  break-tests.
+
+**Next**
+- Fill in the blank Why lines in `docs/decisions.md` (Phases 0–2).
+- Phase 3: checker, CP-SAT solver, infeasibility explanations. First decide:
+  do I write the solver myself with hints, or does Claude write it?
+
 **Open questions**
 - Before putting the repo link on my CV: keep `CLAUDE.md` and the Claude co-author
   lines public, or remove them from history?

@@ -8,6 +8,7 @@ from pydantic import TypeAdapter
 
 from planner.calendar.backend import EventNotFoundError, NotOwnedError
 from planner.calendar.models import Event, EventChanges, NewEvent
+from planner.common import overlaps
 
 _EVENT_LIST = TypeAdapter(list[Event])
 
@@ -34,8 +35,9 @@ class FakeCalendar:
     def list_events(self, start: datetime, end: datetime) -> list[Event]:
         if start.tzinfo is None or end.tzinfo is None:
             raise ValueError("start and end must be timezone-aware")
-        # Half-open overlap: an event ending exactly at `start` is not included.
-        found = [e for e in self._events.values() if e.start < end and e.end > start]
+        found = [
+            e for e in self._events.values() if overlaps(e.start, e.end, start, end)
+        ]
         return sorted(found, key=lambda e: e.start)
 
     def create_event(self, event: NewEvent) -> Event:

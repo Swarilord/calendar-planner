@@ -137,3 +137,9 @@ def test_blocked_default_is_not_shared() -> None:
     b = PlanRequest.model_validate(without_blocked)
     assert a.blocked == [] and b.blocked == []
     assert a.blocked is not b.blocked
+
+
+def test_task_names_must_be_unique() -> None:
+    task = {"name": "Study", "duration_min": 60, "deadline": zurich(26, 12)}
+    with pytest.raises(ValidationError, match="task names must be unique"):
+        example_request(tasks=[task, task])

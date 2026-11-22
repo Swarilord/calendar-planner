@@ -80,6 +80,10 @@ class PlanRequest(Schema):
     def _check_consistency(self) -> Self:
         if self.horizon_end <= self.horizon_start:
             raise ValueError("horizon_end must be after horizon_start")
+        names = [task.name for task in self.tasks]
+        if len(names) != len(set(names)):
+            # Scheduled blocks refer to their task by name.
+            raise ValueError("task names must be unique")
         if (
             self.day_start is not None
             and self.day_end is not None

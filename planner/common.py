@@ -18,3 +18,14 @@ class Schema(BaseModel):
     """Base for all schemas: immutable, and unknown fields are an error."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
+
+
+def overlaps(
+    a_start: datetime, a_end: datetime, b_start: datetime, b_end: datetime
+) -> bool:
+    """True if [a_start, a_end) and [b_start, b_end) share any time.
+
+    Half-open: ranges that only touch (a ends exactly when b starts) do not
+    overlap. Every part of the app uses this one definition.
+    """
+    return a_start < b_end and b_start < a_end

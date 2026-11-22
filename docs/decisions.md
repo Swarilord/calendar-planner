@@ -132,3 +132,35 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `timezone: str`, validated by trying `ZoneInfo(name)`.
 - **Alternatives:** store a `ZoneInfo` object; don't validate the string.
 - **Why:**
+
+## Phase 3: checker, solver, infeasibility
+
+### Solver written by Claude
+- **Chose:** Claude writes the CP-SAT model; I must be able to explain every variable and constraint.
+- **Alternatives:** I write it myself with hints only.
+- **Why:**
+
+### Checker before solver
+- **Chose:** build the independent checker first.
+- **Alternatives:** solver first, checker afterwards.
+- **Why:**
+
+### One shared `overlaps()` function
+- **Chose:** a single half-open overlap rule in `planner/common.py`, used by FakeCalendar and the checker (and later the solver's tests).
+- **Alternatives:** each part writes its own comparison.
+- **Why:**
+
+### Schedule = blocks with exact times
+- **Chose:** `ScheduledBlock(task_name, start, end)` with minute-precise UTC times.
+- **Alternatives:** blocks as solver slot numbers (e.g. slots 36-43).
+- **Why:**
+
+### Blocks refer to tasks by name
+- **Chose:** `task_name`, with task names required to be unique in a `PlanRequest`.
+- **Alternatives:** refer by position in the task list; give each task a separate id.
+- **Why:**
+
+### Checker returns every violation
+- **Chose:** a list of `Violation(kind, task_name, message)`; empty list = valid.
+- **Alternatives:** return True/False; raise an error at the first problem.
+- **Why:**

@@ -21,7 +21,8 @@ where I must explain every file and every decision without notes.
   or vague, say so directly and correct it.
 - Exception, the CP-SAT model (`planner/solver/`): I derive it on paper first. Before
   Phase 3, ask me whether I write it myself with hints only, or you write it. Record my
-  answer here: **Solver written by: _undecided_**
+  answer here: **Solver written by: Claude** (decided 2026-11-22). I must still be able to explain
+  every variable and constraint, so walk me through the model before and after coding.
 - Stick to the stack in the brief. Propose a new library only with a reason and the
   alternative.
 - Tell me honestly when something is overkill, or when I'm stuck on the wrong problem.

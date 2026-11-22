@@ -1,9 +1,11 @@
 """Tests for the independent schedule checker."""
 
-from datetime import datetime
+from datetime import UTC, datetime, time, timedelta
+from typing import Any
 from zoneinfo import ZoneInfo
 
 import pytest
+from pydantic import ValidationError
 
 from planner.calendar.models import Event
 from planner.checker.check import ViolationKind, check
@@ -123,3 +125,116 @@ def test_message_names_the_problem() -> None:
     )
     [violation] = check(REQUEST, [LECTURE], schedule)
     assert "Lecture" in violation.message and "Analysis" in violation.message
+
+
+# --- allowed hours (step 3.2) ---
+
+
+def request_with(**overrides: Any) -> PlanRequest:
+    """REQUEST with some fields replaced, validated again."""
+    return PlanRequest.model_validate(REQUEST.model_dump() | overrides)
+
+
+def kinds_for(
+    request: PlanRequest, *blocks: tuple[str, datetime, datetime]
+) -> list[ViolationKind]:
+    schedule = Schedule(
+        blocks=[ScheduledBlock(task_name=n, start=s, end=e) for n, s, e in blocks]
+    )
+    return [v.kind for v in check(request, [], schedule)]
+
+
+NINE_TO_22 = request_with(day_start=time(9, 0), day_end=time(22, 0))
+
+
+@pytest.mark.parametrize(
+    ("start", "end", "ok"),
+    [
+        (z(24, 9), z(24, 10), True),  # starts exactly at day_start
+        (z(24, 21), z(24, 22), True),  # ends exactly at day_end
+        (z(24, 8, 30), z(24, 9, 30), False),  # starts before 9
+        (z(24, 21, 30), z(24, 22, 30), False),  # ends after 22
+        (z(24, 23), z(25, 1), False),  # crosses midnight
+    ],
+)
+def test_day_hours(start: datetime, end: datetime, ok: bool) -> None:
+    found = kinds_for(NINE_TO_22, ("Analysis", start, end))
+    assert (ViolationKind.OUTSIDE_DAY_HOURS not in found) is ok
+
+
+def test_only_day_start_still_forbids_crossing_midnight() -> None:
+    # Without day_end the day runs to midnight; 00:00-01:00 is before day_start.
+    request = request_with(day_start=time(9, 0))
+    assert kinds_for(request, ("Analysis", z(24, 23), z(25, 1))) == [
+        ViolationKind.OUTSIDE_DAY_HOURS
+    ]
+
+
+def test_no_day_hours_allows_any_time() -> None:
+    assert kinds_for(REQUEST, ("Analysis", z(24, 23), z(25, 1))) == []
+
+
+def dst_request(day: int, month: int) -> PlanRequest:
+    """A request around a daylight-saving switch, with 'nothing before 9'."""
+    return PlanRequest(
+        horizon_start=datetime(2026, month, day - 2, tzinfo=ZURICH),
+        horizon_end=datetime(2026, month, day + 2, tzinfo=ZURICH),
+        tasks=[
+            Task(
+                name="Analysis",
+                duration_min=60,
+                deadline=datetime(2026, month, day + 2, tzinfo=ZURICH),
+            )
+        ],
+        day_start=time(9, 0),
+    )
+
+
+@pytest.mark.parametrize(
+    ("month", "switch_day", "block_day", "ok"),
+    [
+        # Spring forward (29 Mar): 07:30 UTC is 08:30 the day before, 09:30 on the day.
+        (3, 29, 28, False),
+        (3, 29, 29, True),
+        # Fall back (25 Oct): 07:30 UTC is 09:30 the day before, 08:30 on the day.
+        (10, 25, 24, True),
+        (10, 25, 25, False),
+    ],
+)
+def test_day_start_follows_daylight_saving(
+    month: int, switch_day: int, block_day: int, ok: bool
+) -> None:
+    # The SAME UTC time gets opposite verdicts on either side of a switch.
+    start = datetime(2026, month, block_day, 7, 30, tzinfo=UTC)
+    end = start + timedelta(hours=1)
+    found = kinds_for(dst_request(switch_day, month), ("Analysis", start, end))
+    assert (ViolationKind.OUTSIDE_DAY_HOURS not in found) is ok
+
+
+def test_blocked_window() -> None:
+    wednesday_evening = {"start": z(25, 18), "end": z(25, 23, 59)}
+    request = request_with(blocked=[wednesday_evening])
+    assert kinds_for(request, ("Analysis", z(25, 19), z(25, 20))) == [
+        ViolationKind.IN_BLOCKED_WINDOW
+    ]
+    # Touching the window is fine.
+    assert kinds_for(request, ("Analysis", z(25, 17), z(25, 18))) == []
+
+
+def test_earliest_start() -> None:
+    released_tuesday = Task(
+        name="Analysis",
+        duration_min=120,
+        deadline=z(26, 23, 59),
+        earliest_start=z(24, 12),
+    )
+    request = request_with(tasks=[released_tuesday.model_dump()])
+    assert kinds_for(request, ("Analysis", z(24, 11), z(24, 13))) == [
+        ViolationKind.BEFORE_EARLIEST_START
+    ]
+    assert kinds_for(request, ("Analysis", z(24, 12), z(24, 14))) == []  # boundary
+
+
+def test_day_end_midnight_is_rejected_by_schema() -> None:
+    with pytest.raises(ValidationError, match="ambiguous"):
+        request_with(day_end=time(0, 0))

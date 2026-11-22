@@ -164,3 +164,13 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** a list of `Violation(kind, task_name, message)`; empty list = valid.
 - **Alternatives:** return True/False; raise an error at the first problem.
 - **Why:**
+
+### Day hours checked per local day
+- **Chose:** build each block's allowed window from its local date in `request.timezone` (zoneinfo applies that day's offset); a block must fit inside one day's window.
+- **Alternatives:** convert `day_start`/`day_end` to a fixed UTC time once; allow a block to span two days' windows.
+- **Why:**
+
+### `day_end = 00:00` is rejected
+- **Chose:** schema error; "until midnight" means leaving `day_end` empty.
+- **Alternatives:** read 00:00 as end of day; read it as start of day.
+- **Why:**

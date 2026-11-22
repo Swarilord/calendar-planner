@@ -6,8 +6,10 @@ it only looks at the result, using plain Python.
 """
 
 from collections.abc import Sequence
+from datetime import datetime, time, timedelta
 from enum import StrEnum
 from itertools import combinations
+from zoneinfo import ZoneInfo
 
 from planner.calendar.models import Event
 from planner.common import Schema, overlaps
@@ -21,6 +23,9 @@ class ViolationKind(StrEnum):
     CLASHES_WITH_BLOCK = "clashes_with_block"
     AFTER_DEADLINE = "after_deadline"
     OUTSIDE_HORIZON = "outside_horizon"
+    BEFORE_EARLIEST_START = "before_earliest_start"
+    OUTSIDE_DAY_HOURS = "outside_day_hours"
+    IN_BLOCKED_WINDOW = "in_blocked_window"
 
 
 class Violation(Schema):
@@ -60,6 +65,34 @@ def check(
                 )
             )
 
+        if task.earliest_start is not None and block.start < task.earliest_start:
+            violations.append(
+                _violation(
+                    ViolationKind.BEFORE_EARLIEST_START,
+                    block,
+                    "starts before the task's earliest start",
+                )
+            )
+
+        if not _within_day_hours(block, request):
+            violations.append(
+                _violation(
+                    ViolationKind.OUTSIDE_DAY_HOURS,
+                    block,
+                    "is outside the allowed hours of the day",
+                )
+            )
+
+        for window in request.blocked:
+            if overlaps(block.start, block.end, window.start, window.end):
+                violations.append(
+                    _violation(
+                        ViolationKind.IN_BLOCKED_WINDOW,
+                        block,
+                        "falls in a time I asked to keep free",
+                    )
+                )
+
         for event in events:
             if overlaps(block.start, block.end, event.start, event.end):
                 violations.append(
@@ -81,6 +114,25 @@ def check(
             )
 
     return violations
+
+
+def _within_day_hours(block: ScheduledBlock, request: PlanRequest) -> bool:
+    """True if the block fits inside one local day's allowed hours.
+
+    day_start/day_end are wall-clock times in request.timezone, so the allowed
+    window is built separately for the block's local date. zoneinfo applies
+    that date's UTC offset, which handles the daylight-saving switches.
+    """
+    if request.day_start is None and request.day_end is None:
+        return True
+    tz = ZoneInfo(request.timezone)
+    day = block.start.astimezone(tz).date()
+    window_start = datetime.combine(day, request.day_start or time(0, 0), tzinfo=tz)
+    if request.day_end is None:
+        window_end = datetime.combine(day + timedelta(days=1), time(0, 0), tzinfo=tz)
+    else:
+        window_end = datetime.combine(day, request.day_end, tzinfo=tz)
+    return window_start <= block.start and block.end <= window_end
 
 
 def _violation(kind: ViolationKind, block: ScheduledBlock, problem: str) -> Violation:

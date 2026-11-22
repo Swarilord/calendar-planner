@@ -76,6 +76,13 @@ class PlanRequest(Schema):
             raise ValueError("day_start/day_end are local times without a timezone")
         return value
 
+    @field_validator("day_end")
+    @classmethod
+    def _day_end_not_midnight(cls, value: time | None) -> time | None:
+        if value == time(0, 0):
+            raise ValueError("day_end 00:00 is ambiguous; leave it empty for midnight")
+        return value
+
     @model_validator(mode="after")
     def _check_consistency(self) -> Self:
         if self.horizon_end <= self.horizon_start:

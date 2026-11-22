@@ -87,3 +87,28 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `plugins = ["pydantic.mypy"]`.
 - **Alternatives:** plain mypy, which doesn't know Pydantic rules such as `frozen`.
 - **Why:**
+
+### Interface as a `Protocol`
+- **Chose:** `CalendarBackend(Protocol)`: a calendar fits if it has the right methods (structural typing), checked by mypy.
+- **Alternatives:** an abstract base class (ABC) that every calendar must inherit from.
+- **Why:**
+
+### Named calendar errors
+- **Chose:** `EventNotFoundError` and `NotOwnedError` (both subclasses of `CalendarError`).
+- **Alternatives:** return `None`/`False`; raise generic `KeyError`/`ValueError`.
+- **Why:**
+
+### Half-open time ranges `[start, end)`
+- **Chose:** an event ending exactly when a range starts does not overlap it.
+- **Alternatives:** closed ranges, where touching counts as overlapping.
+- **Why:**
+
+### Deterministic ids in FakeCalendar
+- **Chose:** `fake-1`, `fake-2`, ...
+- **Alternatives:** random ids (`uuid4`).
+- **Why:**
+
+### Updates rebuild the event
+- **Chose:** `Event.model_validate(old fields | changes)`, so every check runs again.
+- **Alternatives:** `old.model_copy(update=...)`, which copies without validating.
+- **Why:**

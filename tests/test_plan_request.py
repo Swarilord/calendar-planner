@@ -143,3 +143,9 @@ def test_task_names_must_be_unique() -> None:
     task = {"name": "Study", "duration_min": 60, "deadline": zurich(26, 12)}
     with pytest.raises(ValidationError, match="task names must be unique"):
         example_request(tasks=[task, task])
+
+
+@pytest.mark.parametrize("field", ["duration_min", "min_block_min", "max_block_min"])
+def test_lengths_must_be_whole_15_minute_slots(field: str) -> None:
+    with pytest.raises(ValidationError, match="multiple of 15"):
+        make_task(**{field: 50})

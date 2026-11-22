@@ -174,3 +174,23 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** schema error; "until midnight" means leaving `day_end` empty.
 - **Alternatives:** read 00:00 as end of day; read it as start of day.
 - **Why:**
+
+### Lengths in whole 15-minute steps
+- **Chose:** the schema requires `duration_min`, `min_block_min`, `max_block_min` to be multiples of 15; the parser rounds.
+- **Alternatives:** allow any minutes and let the solver round (then its totals never match exactly); make the checker tolerate rounding.
+- **Why:**
+
+### Shortest block = min(min_block, duration)
+- **Chose:** `Task.shortest_block_min`, one definition used by checker and solver.
+- **Alternatives:** reject tasks shorter than their minimum block; let the solver and checker each handle it.
+- **Why:**
+
+### Totals must match exactly
+- **Chose:** too little and too much scheduled time are both violations (`WRONG_TOTAL`).
+- **Alternatives:** only flag too little ("unscheduled minutes"), allow extra time.
+- **Why:**
+
+### Daily cap counts real minutes per local day
+- **Chose:** minutes from UTC subtraction, grouped by Zurich date; blocks crossing local midnight are split.
+- **Alternatives:** wall-clock subtraction; group by UTC date; count a block only on its start day.
+- **Why:**

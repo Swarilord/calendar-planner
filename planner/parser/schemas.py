@@ -13,6 +13,10 @@ from pydantic import Field, PositiveInt, field_validator, model_validator
 
 from planner.common import Schema, UtcDatetime
 
+# Durations and block lengths are whole multiples of this, so they fit the
+# solver's time slots exactly. The parser rounds "about 50 min" to 60.
+GRANULARITY_MIN = 15
+
 
 class Task(Schema):
     """One piece of work to schedule, e.g. "Analysis sheet, 4h, due Thursday"."""
@@ -23,6 +27,18 @@ class Task(Schema):
     earliest_start: UtcDatetime | None = None
     min_block_min: PositiveInt = 30  # no study blocks shorter than this
     max_block_min: PositiveInt | None = None  # e.g. at most 2h in one sitting
+
+    @field_validator("duration_min", "min_block_min", "max_block_min")
+    @classmethod
+    def _whole_slots(cls, value: int | None) -> int | None:
+        if value is not None and value % GRANULARITY_MIN != 0:
+            raise ValueError(f"must be a multiple of {GRANULARITY_MIN} minutes")
+        return value
+
+    @property
+    def shortest_block_min(self) -> int:
+        """Real minimum block length: a 15-min task cannot need 30-min blocks."""
+        return min(self.min_block_min, self.duration_min)
 
     @model_validator(mode="after")
     def _check_consistency(self) -> Self:

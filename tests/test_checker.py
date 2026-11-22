@@ -30,10 +30,15 @@ LECTURE = Event(id="lecture", title="Lecture", start=z(23, 9), end=z(23, 11))
 
 
 def kinds(*blocks: tuple[str, datetime, datetime]) -> list[ViolationKind]:
+    """Violation kinds for these blocks, ignoring WRONG_TOTAL (tested separately)."""
     schedule = Schedule(
         blocks=[ScheduledBlock(task_name=n, start=s, end=e) for n, s, e in blocks]
     )
-    return [v.kind for v in check(REQUEST, [LECTURE], schedule)]
+    return [
+        v.kind
+        for v in check(REQUEST, [LECTURE], schedule)
+        if v.kind != ViolationKind.WRONG_TOTAL  # most tests check one rule only
+    ]
 
 
 # --- the shared overlap rule ---
@@ -141,7 +146,11 @@ def kinds_for(
     schedule = Schedule(
         blocks=[ScheduledBlock(task_name=n, start=s, end=e) for n, s, e in blocks]
     )
-    return [v.kind for v in check(request, [], schedule)]
+    return [
+        v.kind
+        for v in check(request, [], schedule)
+        if v.kind != ViolationKind.WRONG_TOTAL  # most tests check one rule only
+    ]
 
 
 NINE_TO_22 = request_with(day_start=time(9, 0), day_end=time(22, 0))
@@ -238,3 +247,110 @@ def test_earliest_start() -> None:
 def test_day_end_midnight_is_rejected_by_schema() -> None:
     with pytest.raises(ValidationError, match="ambiguous"):
         request_with(day_end=time(0, 0))
+
+
+# --- amounts (step 3.3) ---
+
+
+def all_kinds(
+    request: PlanRequest, *blocks: tuple[str, datetime, datetime]
+) -> list[ViolationKind]:
+    """Every violation kind, WRONG_TOTAL included."""
+    schedule = Schedule(
+        blocks=[ScheduledBlock(task_name=n, start=s, end=e) for n, s, e in blocks]
+    )
+    return [v.kind for v in check(request, [], schedule)]
+
+
+def with_task(**task_fields: Any) -> PlanRequest:
+    task = {"name": "Analysis", "duration_min": 120, "deadline": z(26, 23, 59)}
+    return request_with(tasks=[task | task_fields])
+
+
+def test_block_too_short() -> None:
+    # 120 min split as 15 + 105, with the default 30-minute minimum block.
+    found = all_kinds(
+        with_task(),
+        ("Analysis", z(23, 13), z(23, 13, 15)),
+        ("Analysis", z(24, 13), z(24, 14, 45)),
+    )
+    assert found == [ViolationKind.BLOCK_TOO_SHORT]
+
+
+def test_short_task_may_use_a_short_block() -> None:
+    # A 15-minute task can't need 30-minute blocks: its minimum becomes 15.
+    request = with_task(duration_min=15)
+    assert all_kinds(request, ("Analysis", z(23, 13), z(23, 13, 15))) == []
+
+
+def test_block_too_long() -> None:
+    request = with_task(max_block_min=60)
+    assert all_kinds(request, ("Analysis", z(23, 13), z(23, 15))) == [
+        ViolationKind.BLOCK_TOO_LONG
+    ]
+
+
+@pytest.mark.parametrize(
+    ("blocks", "message"),
+    [
+        ([], "0 of 120"),  # nothing scheduled
+        ([("Analysis", z(23, 13), z(23, 14))], "60 of 120"),  # too little
+        ([("Analysis", z(23, 13), z(23, 16))], "180 of 120"),  # too much
+    ],
+)
+def test_wrong_total(
+    blocks: list[tuple[str, datetime, datetime]], message: str
+) -> None:
+    schedule = Schedule(
+        blocks=[ScheduledBlock(task_name=n, start=s, end=e) for n, s, e in blocks]
+    )
+    [violation] = check(REQUEST, [], schedule)
+    assert violation.kind == ViolationKind.WRONG_TOTAL
+    assert message in violation.message
+
+
+def test_total_split_over_several_blocks_is_fine() -> None:
+    assert (
+        all_kinds(
+            REQUEST,
+            ("Analysis", z(23, 13), z(23, 14)),
+            ("Analysis", z(24, 9), z(24, 10)),
+        )
+        == []
+    )
+
+
+def test_daily_cap() -> None:
+    request = request_with(max_work_min_per_day=90)
+    # 120 minutes on Monday breaks a 90-minute cap; split over two days it is fine.
+    assert all_kinds(request, ("Analysis", z(23, 13), z(23, 15))) == [
+        ViolationKind.DAILY_CAP_EXCEEDED
+    ]
+    assert (
+        all_kinds(
+            request,
+            ("Analysis", z(23, 13), z(23, 14)),
+            ("Analysis", z(24, 13), z(24, 14)),
+        )
+        == []
+    )
+
+
+def test_daily_cap_splits_blocks_at_local_midnight() -> None:
+    # 23:00-01:00 is 60 minutes on each day, so a 60-minute cap holds.
+    request = request_with(max_work_min_per_day=60)
+    assert all_kinds(request, ("Analysis", z(23, 23), z(24, 1))) == []
+
+
+def test_daily_cap_counts_real_minutes_on_dst_day() -> None:
+    # On 29 Mar 2026, 01:00-04:00 local is only 2 real hours (02:00-03:00 is skipped).
+    def mar(day: int, hour: int) -> datetime:
+        return datetime(2026, 3, day, hour, tzinfo=ZURICH)
+
+    request = PlanRequest(
+        horizon_start=mar(28, 0),
+        horizon_end=mar(31, 0),
+        tasks=[Task(name="Analysis", duration_min=120, deadline=mar(31, 0))],
+        max_work_min_per_day=150,
+    )
+    assert all_kinds(request, ("Analysis", mar(29, 1), mar(29, 4))) == []

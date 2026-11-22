@@ -36,12 +36,12 @@ want to work on today.
 1. Update `docs/progress.md`: date, what was done, what's next, open questions.
 2. Remind me to fill in any blank "Why" lines in `docs/decisions.md`. Review them, but
    don't write the "Why" for me.
+3. At the end of each roadmap phase, ask me 3 host-call-style questions about what we
+   built and correct my answers.
 
 **During work:** every time we make a design choice, add an entry to `docs/decisions.md`
 right away, under the current phase: fill in **Chose** and **Alternatives**, leave
 **Why:** blank for me.
-3. At the end of each roadmap phase, ask me 3 host-call-style questions about what we
-   built and correct my answers.
 
 ## Commands
 

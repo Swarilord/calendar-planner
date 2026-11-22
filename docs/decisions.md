@@ -112,3 +112,23 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `Event.model_validate(old fields | changes)`, so every check runs again.
 - **Alternatives:** `old.model_copy(update=...)`, which copies without validating.
 - **Why:**
+
+### Shared `planner/common.py`
+- **Chose:** one module with `Schema` (frozen, forbid) and `UtcDatetime`, imported by calendar and parser.
+- **Alternatives:** copy them into each package; let parser import from `calendar.models`.
+- **Why:**
+
+### What the schema rejects vs. what the solver handles
+- **Chose:** the schema rejects what is nonsense on any calendar (negative duration, backwards horizon, unknown timezone); requests that are only impossible on my calendar go to the solver.
+- **Alternatives:** reject impossible requests in the schema too (e.g. more work than hours in the horizon).
+- **Why:**
+
+### Times of day stay local
+- **Chose:** `day_start`/`day_end` are plain `time` values, read in `PlanRequest.timezone`.
+- **Alternatives:** convert them to UTC like datetimes.
+- **Why:**
+
+### Timezone stored as a checked name
+- **Chose:** `timezone: str`, validated by trying `ZoneInfo(name)`.
+- **Alternatives:** store a `ZoneInfo` object; don't validate the string.
+- **Why:**

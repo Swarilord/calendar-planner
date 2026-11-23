@@ -108,3 +108,47 @@
 **Open questions**
 - Before putting the repo link on my CV: keep `CLAUDE.md` and the Claude co-author
   lines public, or remove them from history?
+
+## 2026-11-23 — Phase 3 (checker, solver, infeasibility), done
+
+**Done**
+- `planner/schedule.py`: `ScheduledBlock(task_name, start, end)` and `Schedule`.
+- `planner/checker/check.py`: independent checker, 12 violation kinds, returns every
+  violation. Exact minutes in UTC; day hours and the daily cap per local day (DST-safe).
+  `GRANULARITY_MIN = 15` and `Task.shortest_block_min` added to the schema.
+- `planner/solver/grid.py`: horizon cut into 15-min UTC slots (rounded inward); per
+  slot: local day, busy (rounded outward), outside day hours; slots per blocked window.
+- `planner/solver/model.py`: CP-SAT model (OR-Tools 9.15.6755). Variables x (slot
+  used) and s (block starts). Rules: exact totals, forbidden slots, one task per slot,
+  block starts, min/max block length, daily cap. Objective: 4 per block + 1 per slot
+  before 8:00 or from 20:00. Redundant rule `#blocks >= ceil(duration / max_block)`.
+- Infeasibility: each relaxable rule group has a switch. Normal solve fixes switches
+  on; if infeasible, a second pass uses them as assumptions, reads CP-SAT's core and
+  shrinks it, giving `Conflict(rule, task_name, description)` in Zurich time.
+- 164 tests. Solver tests are judged by the checker, plus 25 seeded random requests
+  (400 checked once). Break-tests on clashes, day hours, min block, daily cap, core.
+
+**Problems found**
+- The brief's formula has no max-block constraint; added as rule 7.
+- A random request needed >10 s to prove optimality (bound stuck below the found plan);
+  the redundant block-count rule made it 0.05 s.
+- Assumptions in every solve made tests 10x slower: hence two passes. Explaining takes
+  about 1.5-2.7 s.
+- `sufficient_assumptions_for_infeasibility` returns variable indices, not list
+  positions, and its set is not minimal (blamed "30-min blocks" for 20 h in one day).
+  Both found by testing; docstrings don't say.
+
+**Next**
+- Push the unpushed commits and check that CI is green with OR-Tools.
+- Fill in the blank Why lines in `docs/decisions.md` (Phases 0-3).
+- Phase 4: DSPy parser + ADK agent tools, end to end on the FakeCalendar. Give the
+  agent a timeout and a clear error when Gemini is down.
+
+**Open questions**
+- Before putting the repo link on my CV: keep `CLAUDE.md` and the Claude co-author
+  lines public, or remove them from history?
+- Explanations give one reason, not all; is that enough for the agent, or should it
+  re-solve after a fix to find the next one?
+- Many plans tie on the objective, so CP-SAT may pick different ones between runs.
+  Fine for validity tests; decide before Phase 5 evals whether plans must be
+  reproducible.

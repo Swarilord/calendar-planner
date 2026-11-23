@@ -269,3 +269,28 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** 25 seeded random calendars; every solved plan must pass the checker (400 seeds checked once by hand).
 - **Alternatives:** only hand-written cases; Hypothesis (in the brief's stack) for property-based tests.
 - **Why:**
+
+### Which rules get a switch
+- **Chose:** switches for each task's deadline, earliest start and block lengths, the day hours, each blocked window, and the daily cap. Always on: each task's total, existing events, the horizon.
+- **Alternatives:** a switch for every single constraint; also allow relaxing durations or events.
+- **Why:**
+
+### Blocked windows kept per window in the grid
+- **Chose:** `blocked_slots: list[list[int]]`, one list per window, so an explanation can name "keep Mon 09:00-12:00 free".
+- **Alternatives:** one merged `in_blocked_window` list (could only say "a blocked window").
+- **Why:**
+
+### Two passes: fast solve, then explain
+- **Chose:** normal solve with every switch fixed on; only if infeasible, rebuild with switches as assumptions. Measured: switches as assumptions in every solve made the tests 10x slower; explaining takes about 1.5-2.7 s.
+- **Alternatives:** always solve with assumptions (one model, simpler code).
+- **Why:**
+
+### Shrink CP-SAT's core
+- **Chose:** after `sufficient_assumptions_for_infeasibility`, drop each switch and re-solve; keep it only if the request becomes possible without it.
+- **Alternatives:** report CP-SAT's core as it is (it blamed "blocks of at least 30 min" for "20 h into one day").
+- **Why:**
+
+### Explanation as structured conflicts
+- **Chose:** `Conflict(rule, task_name, description)` with times shown in Zurich; the agent turns them into a sentence.
+- **Alternatives:** one finished sentence from the solver; only the rule names.
+- **Why:**

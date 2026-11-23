@@ -23,14 +23,16 @@ SLOT = timedelta(minutes=GRANULARITY_MIN)
 class Grid:
     """Slot t covers [starts[t], starts[t] + SLOT).
 
-    Every list has exactly one entry per slot.
+    starts, local_days, busy and outside_day_hours have one entry per slot.
     """
 
     starts: list[datetime]  # UTC
     local_days: list[date]  # the slot's date in request.timezone
     busy: list[bool]  # an existing event overlaps the slot
     outside_day_hours: list[bool]
-    in_blocked_window: list[bool]
+    # One list per window in request.blocked: the slots that window touches.
+    # Kept per window so each can be named in an infeasibility explanation.
+    blocked_slots: list[list[int]]
 
     @property
     def n_slots(self) -> int:
@@ -63,9 +65,9 @@ def build_grid(request: PlanRequest, events: Sequence[Event]) -> Grid:
             any(overlaps(s, s + SLOT, e.start, e.end) for e in events) for s in starts
         ],
         outside_day_hours=[not _in_day_hours(s, request, tz) for s in starts],
-        in_blocked_window=[
-            any(overlaps(s, s + SLOT, w.start, w.end) for w in request.blocked)
-            for s in starts
+        blocked_slots=[
+            [t for t, s in enumerate(starts) if overlaps(s, s + SLOT, w.start, w.end)]
+            for w in request.blocked
         ],
     )
 

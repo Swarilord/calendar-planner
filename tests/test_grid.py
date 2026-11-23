@@ -74,12 +74,14 @@ def test_event_ending_at_slot_start_does_not_mark_it() -> None:
     assert grid.busy == [True, False]
 
 
-def test_blocked_window_marks_slots() -> None:
-    window = Window(start=z(11, 25, 18), end=z(11, 25, 18, 30))
+def test_each_blocked_window_lists_its_own_slots() -> None:
+    evening = Window(start=z(11, 25, 18), end=z(11, 25, 18, 30))
+    late = Window(start=z(11, 25, 18, 40), end=z(11, 25, 18, 45))
     grid = build_grid(
-        request(z(11, 25, 17, 45), z(11, 25, 18, 45), blocked=[window]), []
+        request(z(11, 25, 17, 45), z(11, 25, 18, 45), blocked=[evening, late]), []
     )
-    assert grid.in_blocked_window == [False, True, True, False]
+    # slots: 17:45, 18:00, 18:15, 18:30
+    assert grid.blocked_slots == [[1, 2], [3]]
 
 
 # --- day hours ---

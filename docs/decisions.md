@@ -249,3 +249,23 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** every solver test runs `check()` on the result and expects no violations.
 - **Alternatives:** compare against hand-written expected schedules only.
 - **Why:**
+
+### Objective weights and "unpleasant" slots
+- **Chose:** `BLOCK_COST = 4`, `UNPLEASANT_SLOT_COST = 1`; slots before 08:00 or from 20:00 local are unpleasant. One extra block = one hour of unpleasant time.
+- **Alternatives:** only minimise blocks; make the evening hours part of the request; other weights.
+- **Why:**
+
+### Daily cap rounded down to whole slots
+- **Chose:** `cap // 15` slots per local day (e.g. 100 min allows 90).
+- **Alternatives:** round up; require the cap to be a multiple of 15 in the schema.
+- **Why:**
+
+### Redundant "minimum number of blocks" rule
+- **Chose:** add `sum(s[i]) >= ceil(duration / max_block)`; it removes no valid plan, but a random test needed >10 s to prove optimality without it and 0.05 s with it.
+- **Alternatives:** accept `FEASIBLE` results; raise the time limit; switch to interval variables.
+- **Why:**
+
+### Random requests as a solver test
+- **Chose:** 25 seeded random calendars; every solved plan must pass the checker (400 seeds checked once by hand).
+- **Alternatives:** only hand-written cases; Hypothesis (in the brief's stack) for property-based tests.
+- **Why:**

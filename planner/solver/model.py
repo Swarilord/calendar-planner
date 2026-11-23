@@ -1,12 +1,16 @@
 """The CP-SAT model: colour the grid's slots so that every rule holds.
 
-x[i][t] = 1 means task i uses slot t. The solver chooses all x values at once;
-afterwards each run of consecutive used slots becomes one ScheduledBlock.
+x[i][t] = 1 means task i uses slot t; s[i][t] = 1 means a block of task i
+starts at slot t. The solver chooses all values at once; afterwards each run of
+consecutive used slots becomes one ScheduledBlock.
 """
 
+from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import date, datetime, time
 from enum import StrEnum
+from zoneinfo import ZoneInfo
 
 from ortools.sat.python import cp_model
 
@@ -16,6 +20,13 @@ from planner.schedule import Schedule, ScheduledBlock
 from planner.solver.grid import Grid, build_grid
 
 TIME_LIMIT_S = 10.0
+
+# Objective weights: one extra block costs as much as an hour (4 slots) of
+# unpleasant time. Integers, because CP-SAT objectives are whole numbers.
+BLOCK_COST = 4
+UNPLEASANT_SLOT_COST = 1
+PLEASANT_FROM = time(8, 0)  # local time; slots outside [8:00, 20:00) cost extra
+PLEASANT_UNTIL = time(20, 0)
 
 
 class SolveStatus(StrEnum):
@@ -69,6 +80,55 @@ def solve(
         capacity = 0 if grid.busy[t] else 1
         model.add(sum(x[i][t] for i in range(len(request.tasks))) <= capacity)
 
+    # s[i][t] = 1 if a block of task i starts at slot t.
+    s = [
+        [model.new_bool_var(f"s[{i},{t}]") for t in slots]
+        for i in range(len(request.tasks))
+    ]
+    for i, task in enumerate(request.tasks):
+        shortest = task.shortest_block_min // GRANULARITY_MIN
+        for t in slots:
+            # Rule 4: used now but not just before means a block starts here.
+            # Only ">=": the objective keeps s at 0 wherever it is not forced.
+            previous = x[i][t - 1] if t > 0 else 0
+            model.add(s[i][t] >= x[i][t] - previous)
+
+            # Rule 5: a block that starts here lasts at least `shortest` slots.
+            if t + shortest > grid.n_slots:
+                model.add(s[i][t] == 0)  # it would run past the horizon
+            else:
+                for j in range(shortest):
+                    model.add(x[i][t + j] >= s[i][t])
+
+        # Rule 7: no block longer than max_block: any longest + 1 slots in a row
+        # contain at least one unused slot.
+        if task.max_block_min is not None:
+            longest = task.max_block_min // GRANULARITY_MIN
+            for t in range(grid.n_slots - longest):
+                model.add(sum(x[i][t : t + longest + 1]) <= longest)
+            # Redundant rule: true anyway, but tells the solver directly that
+            # it needs at least ceil(duration / longest) blocks. Without it,
+            # proving a plan optimal can take longer than the time limit.
+            needed = -(-task.duration_min // task.max_block_min)  # ceil
+            model.add(sum(s[i]) >= needed)
+
+    # Rule 6: daily cap, per local day. Rounded down to whole slots (safe side).
+    if request.max_work_min_per_day is not None:
+        cap = request.max_work_min_per_day // GRANULARITY_MIN
+        slots_by_day: dict[date, list[int]] = defaultdict(list)
+        for t in slots:
+            slots_by_day[grid.local_days[t]].append(t)
+        for day_slots in slots_by_day.values():
+            model.add(sum(row[t] for row in x for t in day_slots) <= cap)
+
+    # Objective: few blocks first, then few unpleasant (early/late) slots.
+    tz = ZoneInfo(request.timezone)
+    unpleasant = [t for t in slots if _is_unpleasant(grid.starts[t], tz)]
+    model.minimize(
+        BLOCK_COST * sum(sum(row) for row in s)
+        + UNPLEASANT_SLOT_COST * sum(row[t] for row in x for t in unpleasant)
+    )
+
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = time_limit_s
     status = solver.solve(model)
@@ -89,6 +149,11 @@ def solve(
     blocks.sort(key=lambda b: b.start)
     found = SolveStatus.OPTIMAL if status == cp_model.OPTIMAL else SolveStatus.FEASIBLE
     return SolveResult(found, Schedule(blocks=blocks))
+
+
+def _is_unpleasant(slot_start: datetime, tz: ZoneInfo) -> bool:
+    clock = slot_start.astimezone(tz).time()
+    return not (PLEASANT_FROM <= clock < PLEASANT_UNTIL)
 
 
 def _blocks(task_name: str, used: list[bool], grid: Grid) -> list[ScheduledBlock]:

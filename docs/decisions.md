@@ -229,3 +229,23 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** compare each slot's local clock times; the checker builds a per-day window.
 - **Alternatives:** share one day-hours function between checker and solver.
 - **Why:**
+
+### OR-Tools added as a dependency
+- **Chose:** `ortools>=9.15.6755` (the brief's solver), API checked against 9.15.6755.
+- **Alternatives:** PuLP or another MILP library; a hand-written greedy scheduler.
+- **Why:**
+
+### Forbidden slots as `x == 0` rules, not missing variables
+- **Chose:** create `x[i][t]` for every slot and add a rule `x[i][t] == 0` where the task may not go.
+- **Alternatives:** only create variables for allowed slots (smaller model).
+- **Why:**
+
+### Solver time limit and result status
+- **Chose:** 10 s limit; return `OPTIMAL`, `FEASIBLE` (valid but not proven best), `INFEASIBLE` or `TIMED_OUT`; raise only on `MODEL_INVALID`.
+- **Alternatives:** no time limit; raise an exception for infeasible requests; treat `FEASIBLE` as a failure.
+- **Why:**
+
+### Solver tests are judged by the checker
+- **Chose:** every solver test runs `check()` on the result and expects no violations.
+- **Alternatives:** compare against hand-written expected schedules only.
+- **Why:**

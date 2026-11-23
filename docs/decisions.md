@@ -194,3 +194,38 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** minutes from UTC subtraction, grouped by Zurich date; blocks crossing local midnight are split.
 - **Alternatives:** wall-clock subtraction; group by UTC date; count a block only on its start day.
 - **Why:**
+
+### Time-indexed model (15-minute slots)
+- **Chose:** the brief's slot model: yes/no variables `x[i,t]` (task i uses slot t) and `s[i,t]` (a block starts at t).
+- **Alternatives:** CP-SAT interval variables with `AddNoOverlap`.
+- **Why:**
+
+### Max block length as an extra constraint
+- **Chose:** add "any `max_block` + 1 slots in a row have at most `max_block` used", which the brief's formula is missing.
+- **Alternatives:** drop `max_block_min` from the solver and rely on the parser never setting it.
+- **Why:**
+
+### Slots in UTC, horizon rounded inward
+- **Chose:** slots are real 15-minute steps from `horizon_start` rounded up to a quarter hour; only whole slots inside the horizon.
+- **Alternatives:** slots in local wall-clock time; round the horizon outward.
+- **Why:**
+
+### A slot is busy if an event touches it at all
+- **Chose:** mark the whole slot busy when any event overlaps it (e.g. 10:05-10:50 blocks 10:00 and 10:45).
+- **Alternatives:** smaller slots (5 min) to lose less free time; allow partly busy slots.
+- **Why:**
+
+### Grid keeps each reason separate
+- **Chose:** separate lists `busy`, `outside_day_hours`, `in_blocked_window`, plus per-task deadline/earliest slot numbers.
+- **Alternatives:** one merged "allowed" list per task.
+- **Why:**
+
+### Grid is a frozen dataclass, not a Pydantic schema
+- **Chose:** `@dataclass(frozen=True)`, since it is internal and built by our own code.
+- **Alternatives:** a `Schema` subclass with validation.
+- **Why:**
+
+### Day hours in the grid use a different method from the checker
+- **Chose:** compare each slot's local clock times; the checker builds a per-day window.
+- **Alternatives:** share one day-hours function between checker and solver.
+- **Why:**

@@ -24,14 +24,18 @@ def model_name() -> str:
     return os.environ.get("PLANNER_MODEL", DEFAULT_MODEL)
 
 
-def parser_lm(model: str | None = None) -> Any:
-    """The DSPy LM for the request parser. DSPy's timeout is in seconds."""
+def parser_lm(model: str | None = None, retries: int = ATTEMPTS - 1) -> Any:
+    """The DSPy LM for the request parser. DSPy's timeout is in seconds.
+
+    DSPy waits before each retry, so long offline runs (GEPA) pass more retries
+    to ride out per-minute rate limits instead of failing cases.
+    """
     return dspy.LM(
         f"gemini/{model or model_name()}",
         api_key=os.environ["GOOGLE_API_KEY"],
         temperature=0.0,
         cache=False,  # always ask Gemini; evals must not reuse old answers
-        num_retries=ATTEMPTS - 1,
+        num_retries=retries,
         timeout=TIMEOUT_S,
         reasoning_effort=THINKING,
     )
@@ -45,4 +49,17 @@ def agent_config(timeout_s: float = TIMEOUT_S) -> types.GenerateContentConfig:
             timeout=int(timeout_s * 1000),
             retry_options=types.HttpRetryOptions(attempts=ATTEMPTS),
         ),
+    )
+
+
+def reflection_lm(model: str | None = None, retries: int = 8) -> Any:
+    """The LM GEPA uses to rewrite instructions: more creative, longer answers."""
+    return dspy.LM(
+        f"gemini/{model or model_name()}",
+        api_key=os.environ["GOOGLE_API_KEY"],
+        temperature=1.0,  # GEPA's docs recommend a creative reflection model
+        max_tokens=16000,
+        cache=False,
+        num_retries=retries,
+        timeout=2 * TIMEOUT_S,  # it writes a whole new instruction
     )

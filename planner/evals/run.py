@@ -148,6 +148,7 @@ def main() -> None:
     args.add_argument("--baseline", choices=["parser_solver", "direct"], required=True)
     args.add_argument("--split", choices=["train", "test", "all"], default="train")
     args.add_argument("--limit", type=int, default=None)
+    args.add_argument("--prompt", default="v1", help="parser prompt version (B only)")
     args.add_argument(
         "--pause", type=float, default=0.0, help="seconds between cases (free quota)"
     )
@@ -158,7 +159,7 @@ def main() -> None:
     cases = cases[: options.limit]
     lm = parser_lm(model_name())
     baseline: Baseline = (
-        ParserSolverBaseline(lm)
+        ParserSolverBaseline(lm, options.prompt)
         if options.baseline == "parser_solver"
         else DirectBaseline(lm)
     )

@@ -22,11 +22,12 @@ from planner.calendar.models import Event
 from planner.checker.check import Violation, check
 from planner.evals.dataset import EvalCase
 from planner.evals.score import ParseScore, match_tasks, score_parse
+from planner.parser.parse import PROMPT_VERSION as PARSER_PROMPT_VERSION
 from planner.parser.parse import (
     Parser,
     ParserUnavailableError,
-    _reasons,
     describe_now,
+    error_reasons,
 )
 from planner.parser.schemas import Task
 from planner.schedule import Schedule, ScheduledBlock
@@ -72,8 +73,8 @@ class ParserSolverBaseline:
 
     name = "parser_solver"
 
-    def __init__(self, lm: Any) -> None:
-        self.parser = Parser(lm)
+    def __init__(self, lm: Any, prompt_version: str = PARSER_PROMPT_VERSION) -> None:
+        self.parser = Parser(lm, prompt_version)
 
     def run(self, case: EvalCase, events: Sequence[Event]) -> Outcome:
         start = time.monotonic()
@@ -152,7 +153,7 @@ class DirectBaseline:
                     calendar=_summary(case, events),
                 )
             except AdapterParseError as error:
-                reasons = "; ".join(_reasons(error))
+                reasons = "; ".join(error_reasons(error))
                 return Outcome(
                     **meta, seconds=_since(start), error=f"invalid: {reasons}"
                 )

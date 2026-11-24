@@ -71,7 +71,7 @@ class Parser:
                     calendar_summary=calendar_summary or "(no events)",
                 )
             except AdapterParseError as error:  # an answer, but an invalid one
-                return self._result(None, _reasons(error))
+                return self._result(None, error_reasons(error))
             except LMError as error:  # no usable answer at all
                 raise ParserUnavailableError(
                     f"{self.lm.model} did not answer: {type(error).__name__}"
@@ -90,7 +90,7 @@ def describe_now(now: datetime, timezone: str) -> str:
     return f"{local:%A %Y-%m-%d %H:%M %z} ({timezone})"
 
 
-def _reasons(error: AdapterParseError) -> list[str]:
+def error_reasons(error: AdapterParseError) -> list[str]:
     """Pydantic's exact reasons if the answer had the wrong content, else the
     adapter's message (answer not in the expected format at all)."""
     cause = error.__cause__

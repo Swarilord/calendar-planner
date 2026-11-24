@@ -498,3 +498,30 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `evals/results/<time>_<baseline>_<model>_<split>.json` with model, prompt version, summary and every outcome.
 - **Alternatives:** only print the summary; a database; an experiment-tracking service.
 - **Why:**
+
+## Phase 6: prompt optimisation (GEPA)
+
+### GEPA budget set as parser calls
+- **Chose:** `max_metric_calls` (default 150) instead of DSPy's `auto="light"` preset; one metric call is one Gemini parse, so the cost is known before the run.
+- **Alternatives:** `auto="light"/"medium"/"heavy"` (call count hidden); a time limit.
+- **Why:**
+
+### GEPA uses only the train split: 20 to reflect on, 15 to select
+- **Chose:** the first 20 train cases (by id) are GEPA's trainset, the other 15 its valset; the 15 test cases are only used for the final v1 vs v2 comparison. A test checks this.
+- **Alternatives:** use all 50 cases (the before/after score would measure memorisation); random split each run.
+- **Why:**
+
+### Metric: score plus written feedback
+- **Chose:** 1.0 if exact, minus 0.25 per plan-changing mistake, minus 0.1 for `wrong_horizon`, 0 if invalid; feedback lists each finding ("wrong_deadline: expected ..., got ...") for the reflection LM.
+- **Alternatives:** exact/not exact only (no partial credit, no hints); score only, no feedback (GEPA's main strength unused); downstream plan success as the score.
+- **Why:**
+
+### Optimised prompt saved as a new version
+- **Chose:** GEPA's best instructions become `parser_v2.md`; existing versions are never overwritten (enforced in code and tested).
+- **Alternatives:** overwrite `parser_v1.md`; keep the result only as a DSPy state JSON.
+- **Why:**
+
+### More retries for offline runs
+- **Chose:** GEPA's parser and reflection LMs get 8 retries (DSPy waits before each), one thread; the reflection LM uses temperature 1.0.
+- **Alternatives:** the app's 1 retry (rate limits would turn cases into failures and mislead GEPA); parallel threads (faster, hits the per-minute quota).
+- **Why:**

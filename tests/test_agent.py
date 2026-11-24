@@ -2,8 +2,6 @@
 ADK loop (tool calls, tool results, final answer) runs without an API key."""
 
 import asyncio
-import socket
-import threading
 import time
 from collections.abc import AsyncGenerator
 from typing import Any
@@ -25,6 +23,7 @@ from planner.agent.agent import (
 )
 from planner.agent.tools import PlannerTools
 from planner.llm import DEFAULT_MODEL, parser_lm
+from tests.silent_server import silent_server
 from tests.test_agent_tools import NOW, z
 from tests.test_agent_tools import make_tools as make_planner_tools
 
@@ -187,25 +186,10 @@ def test_get_now_tool_answers_with_the_injected_clock() -> None:
 
 def test_silent_gemini_becomes_a_clear_error(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("GOOGLE_API_KEY", "not-a-real-key")
-    server = socket.socket()
-    server.bind(("127.0.0.1", 0))
-    server.listen()
-    held: list[object] = []
-
-    def accept_and_never_reply() -> None:
-        try:
-            while True:
-                held.append(server.accept())
-        except OSError:
-            pass  # the test closed the server
-
-    threading.Thread(target=accept_and_never_reply, daemon=True).start()
-    silent = Gemini(
-        model="gemini-3.6-flash", base_url=f"http://127.0.0.1:{server.getsockname()[1]}"
-    )
     tools, _, _ = make_planner_tools()
 
-    async def run() -> None:
+    async def run(url: str) -> None:
+        silent = Gemini(model="gemini-3.6-flash", base_url=url)
         agent = build_agent(tools, silent, timeout_s=0.5)
         runner = InMemoryRunner(agent=agent, app_name="test")
         session = await runner.session_service.create_session(
@@ -214,7 +198,6 @@ def test_silent_gemini_becomes_a_clear_error(monkeypatch: pytest.MonkeyPatch) ->
         await run_turn(runner, "me", session.id, "hello")
 
     start = time.monotonic()
-    with pytest.raises(AgentUnavailableError, match="try again"):
-        asyncio.run(run())
+    with silent_server() as url, pytest.raises(AgentUnavailableError, match="again"):
+        asyncio.run(run(url))
     assert time.monotonic() - start < 10  # two short attempts, not a hang
-    server.close()

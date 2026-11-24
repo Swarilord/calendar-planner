@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 from planner.calendar.backend import CalendarBackend
 from planner.calendar.models import Event
 from planner.checker.check import check
-from planner.parser.parse import ParseResult
+from planner.parser.parse import ParseResult, ParserUnavailableError
 from planner.parser.schemas import PlanRequest
 from planner.schedule import ScheduledBlock
 from planner.solver.model import SolveResult, SolveStatus, solve
@@ -28,7 +28,8 @@ Result = dict[str, Any]
 
 
 class RequestParser(Protocol):
-    """Anything that turns text into a ParseResult (the DSPy Parser, or a fake)."""
+    """Anything that turns text into a ParseResult (the DSPy Parser, or a fake).
+    Raises ParserUnavailableError if the LM behind it does not answer."""
 
     def parse(
         self, text: str, now: datetime, calendar_summary: str = ""
@@ -136,7 +137,14 @@ class PlannerTools:
     def _plan(self, text: str) -> Result:
         now = self.clock()
         upcoming = self.calendar.list_events(now, now + timedelta(days=SUMMARY_DAYS))
-        parsed = self.parser.parse(text, now, self.summarize(upcoming))
+        try:
+            parsed = self.parser.parse(text, now, self.summarize(upcoming))
+        except ParserUnavailableError:
+            return {
+                "status": "unavailable",
+                "message": "The planning service (Gemini) did not answer. "
+                "Ask the user to try again in a minute.",
+            }
         if parsed.request is None:
             return {
                 "status": "error",

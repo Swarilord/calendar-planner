@@ -1,19 +1,23 @@
 """Tests for the request parser. A DummyLM stands in for Gemini: no API calls."""
 
+import time
 from datetime import UTC, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
+import dspy
 import pytest
 from dspy.utils import DummyLM
 
 from planner.parser.parse import (
     PROMPT_VERSION,
     Parser,
+    ParserUnavailableError,
     describe_now,
     load_instructions,
 )
 from planner.parser.schemas import GRANULARITY_MIN, PlanRequest, Task
+from tests.silent_server import silent_server
 
 ZURICH = ZoneInfo("Europe/Zurich")
 NOW = datetime(2026, 11, 24, 10, 0, tzinfo=ZURICH)
@@ -123,3 +127,21 @@ def test_describe_now_uses_local_time_and_offset(now: datetime, expected: str) -
 def test_describe_now_rejects_naive_time() -> None:
     with pytest.raises(ValueError, match="timezone"):
         describe_now(datetime(2026, 11, 24, 10, 0), "Europe/Zurich")
+
+
+def test_silent_lm_raises_parser_unavailable_quickly() -> None:
+    # A timeout is not "the request was unclear": it must not become a
+    # ParseResult with errors, and it must not hang.
+    with silent_server() as url:
+        lm = dspy.LM(
+            "gemini/gemini-3.6-flash",
+            api_key="not-a-real-key",
+            api_base=url,
+            cache=False,
+            num_retries=0,
+            timeout=1,
+        )
+        start = time.monotonic()
+        with pytest.raises(ParserUnavailableError, match="did not answer"):
+            Parser(lm).parse(TEXT, NOW)
+    assert time.monotonic() - start < 10

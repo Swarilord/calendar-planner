@@ -436,3 +436,8 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `PLANNER_MODEL` overrides `DEFAULT_MODEL` (gemini-3.6-flash) for parser and agent, read at call time. On 2026-11-24 most flash models returned 503/504 and only the lite models answered.
 - **Alternatives:** edit the constant in code each time; automatic fallback to another model (hides which model produced an answer, which evals must record).
 - **Why:**
+
+### Parser outages are their own error and status
+- **Chose:** the parser turns any DSPy `LMError` into `ParserUnavailableError`; `propose_plan`/`revise_plan` return `status: "unavailable"`, and the agent asks the user to try again. Found in the first live run: a parser timeout inside a tool crashed the chat.
+- **Alternatives:** let it propagate (crash with a traceback); report it as a parse error with details (would wrongly tell the user their request was unclear).
+- **Why:**

@@ -13,13 +13,17 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import dspy
-from dspy.utils.exceptions import AdapterParseError
+from dspy.utils.exceptions import AdapterParseError, LMError
 from pydantic import ValidationError
 
 from planner.parser.schemas import PlanRequest
 
 PROMPT_VERSION = "v1"
 PROMPTS_DIR = Path(__file__).parent / "prompts"
+
+
+class ParserUnavailableError(Exception):
+    """The LM did not answer (timeout, overload, quota, ...): not the user's fault."""
 
 
 class ParseRequest(dspy.Signature):
@@ -66,8 +70,12 @@ class Parser:
                     now=describe_now(now, timezone),
                     calendar_summary=calendar_summary or "(no events)",
                 )
-            except AdapterParseError as error:
+            except AdapterParseError as error:  # an answer, but an invalid one
                 return self._result(None, _reasons(error))
+            except LMError as error:  # no usable answer at all
+                raise ParserUnavailableError(
+                    f"{self.lm.model} did not answer: {type(error).__name__}"
+                ) from error
         return self._result(prediction.plan_request, [])
 
     def _result(self, request: PlanRequest | None, errors: list[str]) -> ParseResult:

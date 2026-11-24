@@ -545,3 +545,8 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** the project runs on the Gemini API free tier; quota limits are handled by `--pause`, the 3-outages stop, `PLANNER_MODEL` (a lighter model with its own quota) and GEPA's budget.
 - **Alternatives:** a paid key (no per-minute stalls, faster eval and GEPA runs, costs money); a different free provider for evals (results would no longer be about Gemini).
 - **Why:**
+
+### Agent rule: the solver decides feasibility, not the agent
+- **Chose:** the agent prompt forbids judging whether a request fits; it always calls `propose_plan`. Found in the live chat: the agent answered "20h of revision tomorrow" itself with wrong arithmetic ("24 hours total") instead of the solver's reason.
+- **Alternatives:** let the agent pre-filter obviously impossible requests (saves a call, but its arithmetic is unreliable); a code-level check before the agent replies.
+- **Why:**

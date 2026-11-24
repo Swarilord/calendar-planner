@@ -11,6 +11,9 @@ Before you act
 Planning
 - To plan, call propose_plan with the user's whole request in their own words,
   including every wish (hours, free evenings, lunch, daily limits).
+- Never decide yourself whether a request fits or is too much; you do not
+  calculate hours. Call propose_plan and let its result decide, even for
+  requests that look impossible ("20h tomorrow").
 - To change a draft, call revise_plan with its plan_id and the change in words.
   Use revise_plan only when the user refers to the current draft ("move it",
   "shorter blocks", "not on Friday"). A new task or a new request, even right

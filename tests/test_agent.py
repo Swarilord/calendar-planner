@@ -86,6 +86,8 @@ def test_instruction_has_the_brief_rules_and_no_placeholders() -> None:
     assert "Confirm" in instruction
     # Live run: "20h of revision tomorrow" after a draft went to revise_plan.
     assert "A new task or a new request, even right" in instruction
+    # Live run: the agent refused "20h tomorrow" itself ("24 hours total").
+    assert "Never decide yourself whether a request fits" in instruction
     # ADK reads {name} in an instruction as a session-state variable.
     assert "{" not in instruction and "}" not in instruction
 

@@ -406,3 +406,28 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** the random test requires a valid plan (checker passes) with status OPTIMAL or FEASIBLE.
 - **Alternatives:** require OPTIMAL (could fail randomly on slower CI machines: one request took 7.4 s of the 10 s limit locally).
 - **Why:**
+
+### One module for all Gemini settings
+- **Chose:** `planner/llm.py` holds model, timeout, retries and thinking level for both the parser (DSPy, timeout in seconds) and the agent (google-genai, timeout in milliseconds).
+- **Alternatives:** settings next to each caller (the units differ, so copying `30` would give the agent a 0.03 s timeout).
+- **Why:**
+
+### Gemini calls: 30 s timeout, one retry, low thinking
+- **Chose:** every call gives up after 30 s per attempt, retries once, then the agent raises `AgentUnavailableError` with a clear message. Tested against a local server that never answers.
+- **Alternatives:** library defaults (the Phase 1 hang: no reply and no error); no retry; more retries.
+- **Why:**
+
+### Agent instruction in a versioned file
+- **Chose:** `planner/agent/prompts/agent_v1.md`, the brief's behaviour rules; a test checks it has no `{...}` (ADK reads those as session-state variables).
+- **Alternatives:** an instruction string in code; a DSPy-generated prompt for the agent too.
+- **Why:**
+
+### Agent tests with a scripted fake model
+- **Chose:** `ScriptedGemini(BaseLlm)` returns scripted tool calls and answers, so the real ADK loop runs in tests without a key.
+- **Alternatives:** only test the tools; call real Gemini in tests; mock ADK's runner.
+- **Why:**
+
+### Runnable demo stays in experiments/
+- **Chose:** `experiments/planner_agent/` builds the agent on a FakeCalendar with two weeks of lectures and the real parser; `chat.py` shows each tool call.
+- **Alternatives:** a demo inside `planner/`; a JSON calendar file with fixed dates (would be in the past next week).
+- **Why:**

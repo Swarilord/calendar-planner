@@ -560,3 +560,8 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** keep GEPA's output as `parser_v2.md` unchanged; write `parser_v3.md` = v2 + three fixes found by reading it ("this weekend" starts Saturday not Friday; XML not JSON; local times, not "converted to UTC"); compare v1 vs v3 on the test split and report v3 as "GEPA + hand fix".
 - **Alternatives:** test v2 as GEPA wrote it (a pure GEPA result, with a known bug); edit v2 in place (loses the record of what GEPA wrote); rerun GEPA with a better metric (more quota and time).
 - **Why:**
+
+### Results reporting: every complete run, aborted runs dropped
+- **Chose:** report every complete run, including a repeated Baseline A run (shows the run-to-run noise); drop a v3 run that stopped after 5 cases on rate limits; results table and error analysis in `evals/README.md`.
+- **Alternatives:** report only the best run per variant (hides noise); average repeated runs (needs equal repeats for every variant); keep the aborted run (5 cases say little).
+- **Why:**

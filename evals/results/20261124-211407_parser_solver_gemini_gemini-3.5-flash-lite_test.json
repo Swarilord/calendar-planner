@@ -1,0 +1,478 @@
+{
+ "baseline": "parser_solver",
+ "model": "gemini/gemini-3.5-flash-lite",
+ "prompt_version": "parser_v1",
+ "split": "test",
+ "summary": {
+  "cases": 15,
+  "unavailable": 0,
+  "success_rate": 0.933,
+  "feasibility_accuracy": 0.933,
+  "invalid_output_rate": 0.0,
+  "parse_exact_rate": 0.333,
+  "parse_mistakes": {
+   "wrong_horizon": 9,
+   "wrong_daily_cap": 1,
+   "wrong_earliest_start": 1,
+   "wrong_deadline": 2,
+   "wrong_block_length": 1
+  },
+  "violations": {
+   "before_earliest_start": 2
+  },
+  "mean_seconds": 3.133
+ },
+ "outcomes": [
+  {
+   "case_id": "c02",
+   "seconds": 3.69,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Linear Algebra",
+      "start": "2026-11-24T09:00:00Z",
+      "end": "2026-11-24T12:00:00Z"
+     },
+     {
+      "task_name": "Midterm revision Tue",
+      "start": "2026-11-24T14:00:00Z",
+      "end": "2026-11-24T15:00:00Z"
+     },
+     {
+      "task_name": "Analysis sheet",
+      "start": "2026-11-24T15:00:00Z",
+      "end": "2026-11-24T19:00:00Z"
+     },
+     {
+      "task_name": "Midterm revision Wed",
+      "start": "2026-11-25T08:00:00Z",
+      "end": "2026-11-25T09:00:00Z"
+     },
+     {
+      "task_name": "Midterm revision Thu",
+      "start": "2026-11-26T08:00:00Z",
+      "end": "2026-11-26T09:00:00Z"
+     },
+     {
+      "task_name": "Midterm revision Fri",
+      "start": "2026-11-27T08:00:00Z",
+      "end": "2026-11-27T09:00:00Z"
+     },
+     {
+      "task_name": "Midterm revision Sat",
+      "start": "2026-11-28T08:00:00Z",
+      "end": "2026-11-28T09:00:00Z"
+     },
+     {
+      "task_name": "Midterm revision Sun",
+      "start": "2026-11-29T08:00:00Z",
+      "end": "2026-11-29T09:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": []
+  },
+  {
+   "case_id": "c06",
+   "seconds": 4.22,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Revision",
+      "start": "2026-11-24T09:00:00Z",
+      "end": "2026-11-24T12:15:00Z"
+     },
+     {
+      "task_name": "Revision",
+      "start": "2026-11-24T14:00:00Z",
+      "end": "2026-11-24T20:30:00Z"
+     },
+     {
+      "task_name": "Revision",
+      "start": "2026-11-25T07:00:00Z",
+      "end": "2026-11-25T09:15:00Z"
+     },
+     {
+      "task_name": "Revision",
+      "start": "2026-11-25T11:00:00Z",
+      "end": "2026-11-25T19:00:00Z"
+     }
+    ]
+   },
+   "violations": [
+    {
+     "kind": "before_earliest_start",
+     "task_name": "Revision",
+     "message": "Block for 'Revision' (Tue 24 Nov 09:00-12:15 UTC) starts before the task's earliest start."
+    },
+    {
+     "kind": "before_earliest_start",
+     "task_name": "Revision",
+     "message": "Block for 'Revision' (Tue 24 Nov 14:00-20:30 UTC) starts before the task's earliest start."
+    }
+   ],
+   "parse_findings": [
+    {
+     "mistake": "wrong_horizon",
+     "detail": "expected 2026-11-25 23:00:00+00:00, got 2026-11-25 22:59:00+00:00"
+    },
+    {
+     "mistake": "wrong_daily_cap",
+     "detail": "expected 720, got 1200"
+    },
+    {
+     "mistake": "wrong_earliest_start",
+     "detail": "'Revision': expected 2026-11-24 23:00:00+00:00, got None"
+    }
+   ]
+  },
+  {
+   "case_id": "c08",
+   "seconds": 8.78,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Statistics project",
+      "start": "2026-11-24T09:00:00Z",
+      "end": "2026-11-24T10:00:00Z"
+     },
+     {
+      "task_name": "Statistics project",
+      "start": "2026-11-24T11:00:00Z",
+      "end": "2026-11-24T12:15:00Z"
+     },
+     {
+      "task_name": "Statistics project",
+      "start": "2026-11-24T14:00:00Z",
+      "end": "2026-11-24T16:00:00Z"
+     },
+     {
+      "task_name": "Statistics project",
+      "start": "2026-11-24T16:15:00Z",
+      "end": "2026-11-24T18:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": []
+  },
+  {
+   "case_id": "c13",
+   "seconds": 4.72,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Analysis sheet",
+      "start": "2026-11-24T09:00:00Z",
+      "end": "2026-11-24T11:30:00Z"
+     },
+     {
+      "task_name": "Analysis sheet",
+      "start": "2026-11-24T14:00:00Z",
+      "end": "2026-11-24T17:30:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": [
+    {
+     "mistake": "wrong_horizon",
+     "detail": "expected 2026-11-29 23:00:00+00:00, got 2026-11-28 23:00:00+00:00"
+    }
+   ]
+  },
+  {
+   "case_id": "c17",
+   "seconds": 1.41,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Probability sheet",
+      "start": "2026-11-24T09:00:00Z",
+      "end": "2026-11-24T10:00:00Z"
+     },
+     {
+      "task_name": "Probability sheet",
+      "start": "2026-11-24T11:00:00Z",
+      "end": "2026-11-24T12:15:00Z"
+     },
+     {
+      "task_name": "Probability sheet",
+      "start": "2026-11-24T14:00:00Z",
+      "end": "2026-11-24T15:45:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": []
+  },
+  {
+   "case_id": "c20",
+   "seconds": 9.36,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Linear Algebra revision",
+      "start": "2026-11-30T07:00:00Z",
+      "end": "2026-11-30T09:15:00Z"
+     },
+     {
+      "task_name": "Linear Algebra revision",
+      "start": "2026-11-30T11:00:00Z",
+      "end": "2026-11-30T13:45:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": [
+    {
+     "mistake": "wrong_horizon",
+     "detail": "expected 2026-12-06 23:00:00+00:00, got 2026-12-04 23:00:00+00:00"
+    }
+   ]
+  },
+  {
+   "case_id": "c21",
+   "seconds": 1.22,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Analysis sheet",
+      "start": "2026-11-30T07:00:00Z",
+      "end": "2026-11-30T09:15:00Z"
+     },
+     {
+      "task_name": "Analysis sheet",
+      "start": "2026-11-30T11:00:00Z",
+      "end": "2026-11-30T12:45:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": [
+    {
+     "mistake": "wrong_horizon",
+     "detail": "expected 2026-12-03 22:59:00+00:00, got 2026-12-05 23:00:00+00:00"
+    }
+   ]
+  },
+  {
+   "case_id": "c28",
+   "seconds": 1.12,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Essay",
+      "start": "2026-03-27T11:00:00Z",
+      "end": "2026-03-27T17:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": [
+    {
+     "mistake": "wrong_horizon",
+     "detail": "expected 2026-03-29 22:00:00+00:00, got 2026-03-29 23:00:00+00:00"
+    },
+    {
+     "mistake": "wrong_deadline",
+     "detail": "'Essay': expected 2026-03-29 21:59:00+00:00, got 2026-03-29 22:59:00+00:00"
+    }
+   ]
+  },
+  {
+   "case_id": "c29",
+   "seconds": 1.26,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Problem set",
+      "start": "2026-10-22T08:00:00Z",
+      "end": "2026-10-22T09:00:00Z"
+     },
+     {
+      "task_name": "Problem set",
+      "start": "2026-10-22T10:00:00Z",
+      "end": "2026-10-22T11:15:00Z"
+     },
+     {
+      "task_name": "Problem set",
+      "start": "2026-10-22T13:00:00Z",
+      "end": "2026-10-22T14:45:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": [
+    {
+     "mistake": "wrong_horizon",
+     "detail": "expected 2026-10-26 09:00:00+00:00, got 2026-10-25 23:00:00+00:00"
+    }
+   ]
+  },
+  {
+   "case_id": "c32",
+   "seconds": 1.34,
+   "claimed_feasible": false,
+   "error": null,
+   "schedule": null,
+   "violations": [],
+   "parse_findings": [
+    {
+     "mistake": "wrong_block_length",
+     "detail": "'Revision': expected (30, None), got (30, 120)"
+    }
+   ]
+  },
+  {
+   "case_id": "c36",
+   "seconds": 1.48,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Thesis Sat",
+      "start": "2026-11-28T07:00:00Z",
+      "end": "2026-11-28T09:00:00Z"
+     },
+     {
+      "task_name": "Thesis Sun",
+      "start": "2026-11-29T07:00:00Z",
+      "end": "2026-11-29T09:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": []
+  },
+  {
+   "case_id": "c41",
+   "seconds": 1.48,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Algebra sheet",
+      "start": "2026-11-24T09:00:00Z",
+      "end": "2026-11-24T10:00:00Z"
+     },
+     {
+      "task_name": "Algebra sheet",
+      "start": "2026-11-24T11:00:00Z",
+      "end": "2026-11-24T12:15:00Z"
+     },
+     {
+      "task_name": "Analysis sheet",
+      "start": "2026-11-24T14:00:00Z",
+      "end": "2026-11-24T15:30:00Z"
+     },
+     {
+      "task_name": "Algebra sheet",
+      "start": "2026-11-24T15:30:00Z",
+      "end": "2026-11-24T16:15:00Z"
+     },
+     {
+      "task_name": "Analysis sheet",
+      "start": "2026-11-24T16:15:00Z",
+      "end": "2026-11-24T17:45:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": [
+    {
+     "mistake": "wrong_horizon",
+     "detail": "expected 2026-11-29 23:00:00+00:00, got 2026-11-28 23:00:00+00:00"
+    }
+   ]
+  },
+  {
+   "case_id": "c44",
+   "seconds": 1.2,
+   "claimed_feasible": false,
+   "error": null,
+   "schedule": null,
+   "violations": [],
+   "parse_findings": [
+    {
+     "mistake": "wrong_horizon",
+     "detail": "expected 2026-11-29 23:00:00+00:00, got 2026-11-28 23:00:00+00:00"
+    }
+   ]
+  },
+  {
+   "case_id": "c47",
+   "seconds": 4.09,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Thesis work",
+      "start": "2026-11-25T11:00:00Z",
+      "end": "2026-11-25T15:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": [
+    {
+     "mistake": "wrong_horizon",
+     "detail": "expected 2026-11-25 17:00:00+00:00, got 2026-11-29 23:00:00+00:00"
+    },
+    {
+     "mistake": "wrong_deadline",
+     "detail": "'Thesis work': expected 2026-11-25 17:00:00+00:00, got 2026-11-25 22:59:00+00:00"
+    }
+   ]
+  },
+  {
+   "case_id": "c48",
+   "seconds": 1.63,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Physics",
+      "start": "2026-11-24T09:00:00Z",
+      "end": "2026-11-24T10:00:00Z"
+     },
+     {
+      "task_name": "Physics",
+      "start": "2026-11-24T11:00:00Z",
+      "end": "2026-11-24T12:15:00Z"
+     },
+     {
+      "task_name": "Physics",
+      "start": "2026-11-24T14:00:00Z",
+      "end": "2026-11-24T17:45:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": []
+  }
+ ]
+}

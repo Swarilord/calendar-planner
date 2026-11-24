@@ -393,7 +393,7 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Why:**
 
 ### Objective weights revised
-- **Chose:** block 64, lunch 32 per slot, evening/early 100 per slot, delay 1 per slot-step. Lunch hour (128) > extra block + delay of the moved work; evening slot (100) > overnight wait (48), so work moves to the next morning.
+- **Chose:** block 64, lunch 60 per slot, evening/early 100 per slot, delay 1 per slot-step. Lunch hour (240) > extra block + delay of all work after lunch (at most 64 + 128 = 192); evening slot (100) > overnight wait (48), so work moves to the next morning. (Lunch 32 was too low: 8h tasks worked through lunch.)
 - **Alternatives:** the Phase 3 weights (block 4, evening 1), which would put work at 22:00 rather than 9:00 next day once earliness counts.
 - **Why:**
 

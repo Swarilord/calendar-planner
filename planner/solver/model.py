@@ -29,9 +29,10 @@ TIME_LIMIT_S = 10.0
 # Unit: one slot of work done one slot later costs 1 ("delay"). So one hour of
 # work done one hour later costs 4 x 4 = 16, a quarter of a block.
 BLOCK_COST = 64
-# A 1h lunch (4 x 32 = 128, two blocks) costs more than splitting a block around
-# it (one extra block + the delay of the moved work), so long tasks pause.
-LUNCH_SLOT_COST = 32
+# Splitting a block around a 1h lunch costs one extra block (64) plus 4 delay
+# for every slot after lunch, at most 32 slots until 20:00: 64 + 128 = 192.
+# A lunch hour (4 x 60 = 240) costs more, so every task pauses for lunch.
+LUNCH_SLOT_COST = 60
 # More than waiting overnight (12h = 48 slots of delay), so work is moved to the
 # next morning rather than into the evening; evenings stay free.
 UNPLEASANT_SLOT_COST = 100

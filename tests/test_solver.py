@@ -339,16 +339,18 @@ def test_earlier_is_better() -> None:
     assert used(solved(request)) == [(z(11, 23, 8), z(11, 23, 9))]
 
 
-def test_long_task_pauses_for_lunch() -> None:
-    # 6h on a free day: 3h before lunch, 3h after, not 6h in one go.
+@pytest.mark.parametrize("hours", [6, 8, 10])
+def test_long_task_pauses_for_lunch(hours: int) -> None:
+    # 3h before lunch, the rest after; never straight through 11-12. The 8h
+    # and 10h cases failed with an earlier, too low lunch weight.
     request = PlanRequest(
         horizon_start=z(11, 23, 8),
         horizon_end=z(11, 23, 20),
-        tasks=[task("Thesis", 360, z(11, 23, 20))],
+        tasks=[task("Thesis", hours * 60, z(11, 23, 20))],
     )
     assert used(solved(request)) == [
         (z(11, 23, 8), z(11, 23, 11)),
-        (z(11, 23, 12), z(11, 23, 15)),
+        (z(11, 23, 12), z(11, 23, 12 + hours - 3)),
     ]
 
 

@@ -152,3 +152,57 @@
 - Many plans tie on the objective, so CP-SAT may pick different ones between runs.
   Fine for validity tests; decide before Phase 5 evals whether plans must be
   reproducible.
+
+## 2026-11-24 — Phase 4 built, Phase 5 and 6 pipelines built
+
+**Done**
+- Phase 4.1 parser: DSPy 3.5.0 signature with `PlanRequest` output, instructions in
+  `planner/parser/prompts/parser_v1.md`, no hidden JSON retry, Pydantic's exact
+  error reasons in `ParseResult`; `DummyLM` tests. First live run found and fixed
+  two problems: Gemini 3 "thinking" took 56 s (now `reasoning_effort="low"`,
+  ~13 s) and "leave fields empty" produced empty tags (prompt now says per field).
+- Phase 4.2 agent tools (`PlannerTools`): get_now, get_events, get_free_slots,
+  propose/revise/explain plans; drafts only, the checker runs on every plan.
+- Solver preferences: earlier is better (real cost), lunch 11-12 as a soft cost,
+  evenings strongly avoided. Weights 64 / 60 / 100 / 1, each derived from a trade
+  and tested (6h, 8h, 10h tasks pause for lunch; next morning beats 22:00).
+- Phase 4.3 ADK agent: instruction `agent_v1.md`, six tools, 30 s timeout + one
+  retry for every Gemini call (`planner/llm.py`), clear `AgentUnavailableError`,
+  parser outages returned as `status: "unavailable"`; `ScriptedGemini` tests run
+  the real ADK loop without a key. Demo: `experiments/planner_agent/chat.py`.
+  Model switchable with `PLANNER_MODEL`.
+- Phase 5: 50 eval cases (35 train / 15 test, conventions in `evals/README.md`,
+  drafted by Claude, reviewed by Claude and me), `score_parse` with categorised
+  mistakes, Baseline A (direct) and B (parser + solver) judged against the gold
+  request, runner with `--pause`, early stop on outages. Baseline A is judged on
+  its schedule only (its task list is lenient).
+- Phase 6: GEPA pipeline (`planner/evals/optimize.py`): 20 train cases to reflect
+  on, 15 to select, test split never used; score + written feedback; result saved
+  as a new prompt version.
+- 348 tests.
+
+**First (partial) numbers, gemini-3.5-flash-lite, train split, not comparable yet**
+- B: 11/11 success, parse exact 45% (mostly `wrong_horizon`, which did not hurt plans).
+- A: 14/18 success; 2 invalid, 2 wrong totals (before the fairness fix).
+
+**Problems found**
+- Gemini quota: 503/504 overload on most flash models, then 429 per-minute limits
+  on the free tier (`--pause 5` keeps a run under ~12 calls per minute).
+- A parser timeout inside a tool crashed the chat (fixed: `ParserUnavailableError`).
+- "Fit 20 hours of revision into tomorrow" is feasible under our rules (~22 h free).
+
+**Next**
+1. Phase 4 live chat run (4 example requests), then the Phase 4 host-call questions.
+2. Full baseline runs on the train split, same model, with `--pause 5`.
+3. GEPA run (`--budget 150`), read the v1 → v2 diff.
+4. Final scores on the test split: A, B with v1, B with v2.
+5. Error analysis, README with results table.
+6. Then Phase 7 (Google Calendar), 9 (deploy, README GIF), 8 (UI).
+
+**Open questions**
+- Billing for the Gemini key, to remove the quota limit for GEPA?
+- A default daily work limit, so "20 hours tomorrow" is refused?
+- The agent used `revise_plan` for a new request ("20 hours tomorrow"); note for
+  error analysis, maybe a prompt rule.
+- Repo visibility: keep `CLAUDE.md` and co-author lines public?
+- Blank Why lines in `docs/decisions.md` (Phases 0-6).

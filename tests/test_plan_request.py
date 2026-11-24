@@ -149,3 +149,27 @@ def test_task_names_must_be_unique() -> None:
 def test_lengths_must_be_whole_15_minute_slots(field: str) -> None:
     with pytest.raises(ValidationError, match="multiple of 15"):
         make_task(**{field: 50})
+
+
+def test_lunch_defaults_to_eleven_to_twelve() -> None:
+    request = example_request()
+    assert (request.lunch_start, request.lunch_end) == (time(11), time(12))
+
+
+def test_no_lunch_break_is_allowed() -> None:
+    request = example_request(lunch_start=None, lunch_end=None)
+    assert request.lunch_start is None
+
+
+@pytest.mark.parametrize(
+    ("start", "end", "message"),
+    [
+        (time(12), None, "both lunch_start and lunch_end"),
+        (time(13), time(12), "lunch_end must be after lunch_start"),
+    ],
+)
+def test_lunch_must_be_a_proper_window(
+    start: time | None, end: time | None, message: str
+) -> None:
+    with pytest.raises(ValidationError, match=message):
+        example_request(lunch_start=start, lunch_end=end)

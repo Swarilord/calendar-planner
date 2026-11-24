@@ -1,6 +1,6 @@
 """Tests for the agent tools: FakeCalendar, a fake parser, a fixed clock. No LLM."""
 
-from datetime import datetime, time, timedelta
+from datetime import datetime, time
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -125,15 +125,12 @@ def test_propose_plan_runs_parser_solver_and_checker() -> None:
     assert result["status"] == "ok"
     assert result["plan_id"] == "plan-1"
     assert result["proven_best"] is True
-    # Several placements tie (13-15, 14-16, ...), so check properties, not one
-    # exact answer: a single 2h block after lunch that ends by the deadline.
-    [block] = result["blocks"]
-    schedule = tools.drafts["plan-1"].result.schedule
-    assert schedule is not None
-    [placed] = schedule.blocks
-    assert placed.end - placed.start == timedelta(hours=2)
-    assert z(24, 13) <= placed.start and placed.end <= z(24, 18)
-    assert block["start"] == f"{placed.start.astimezone(ZURICH):%a %d %b %H:%M}"
+    # Earlier is better: 1h before the lecture, 1h after lunch (11-12 is the
+    # default lunch break, 12-13 is an event).
+    assert result["blocks"] == [
+        {"task": "Analysis", "start": "Tue 24 Nov 08:00", "end": "09:00"},
+        {"task": "Analysis", "start": "Tue 24 Nov 13:00", "end": "14:00"},
+    ]
     assert "plan-1" in tools.drafts
 
 

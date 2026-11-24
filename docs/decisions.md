@@ -381,3 +381,28 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** tool outputs show local times like "Tue 24 Nov 09:00"; tool inputs must be ISO 8601 with an offset.
 - **Alternatives:** UTC everywhere in tool outputs; accept times without an offset and assume Zurich.
 - **Why:**
+
+### Lunch as a soft preference
+- **Chose:** `lunch_start`/`lunch_end` on `PlanRequest`, default 11:00-12:00 local; lunch slots cost extra but may be used. "Keep lunch free" becomes a normal blocked window.
+- **Alternatives:** lunch as a hard blocked window (a full day becomes infeasible just because of lunch); no lunch handling.
+- **Why:**
+
+### Earlier is better, as a real cost
+- **Chose:** every used slot costs its slot number, so one hour of work done one hour later costs a quarter of a block. A 6h task on a free day becomes 08-11 + 12-15.
+- **Alternatives:** earliness only as a tie-breaker (gave 12-18 in one block, and was slow to prove); a cost per day of delay.
+- **Why:**
+
+### Objective weights revised
+- **Chose:** block 64, lunch 32 per slot, evening/early 100 per slot, delay 1 per slot-step. Lunch hour (128) > extra block + delay of the moved work; evening slot (100) > overnight wait (48), so work moves to the next morning.
+- **Alternatives:** the Phase 3 weights (block 4, evening 1), which would put work at 22:00 rather than 9:00 next day once earliness counts.
+- **Why:**
+
+### Gym and dinner are not modelled
+- **Chose:** nothing new; work after 20:00 is strongly discouraged, so evenings stay free. Gym can be a normal task with an earliest start of 20:00.
+- **Alternatives:** optional low-priority tasks, an "after the day's last work block" rule, per-task time preferences (later extension, after Phase 6).
+- **Why:**
+
+### Random solver test accepts FEASIBLE
+- **Chose:** the random test requires a valid plan (checker passes) with status OPTIMAL or FEASIBLE.
+- **Alternatives:** require OPTIMAL (could fail randomly on slower CI machines: one request took 7.4 s of the 10 s limit locally).
+- **Why:**

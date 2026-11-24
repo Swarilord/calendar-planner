@@ -73,6 +73,10 @@ class PlanRequest(Schema):
     # "nothing before 9" means 9:00 in Zurich in both summer and winter.
     day_start: time | None = None
     day_end: time | None = None
+    # Preferred lunch break (local clock). A soft preference: the solver avoids
+    # it but may use it if nothing else fits. None/None = no lunch break.
+    lunch_start: time | None = time(11, 0)
+    lunch_end: time | None = time(12, 0)
     max_work_min_per_day: PositiveInt | None = None
     timezone: str = "Europe/Zurich"
 
@@ -85,11 +89,11 @@ class PlanRequest(Schema):
             raise ValueError(f"unknown timezone: {value!r}") from None
         return value
 
-    @field_validator("day_start", "day_end")
+    @field_validator("day_start", "day_end", "lunch_start", "lunch_end")
     @classmethod
     def _naive_time_of_day(cls, value: time | None) -> time | None:
         if value is not None and value.tzinfo is not None:
-            raise ValueError("day_start/day_end are local times without a timezone")
+            raise ValueError("times of day are local times without a timezone")
         return value
 
     @field_validator("day_end")
@@ -113,4 +117,12 @@ class PlanRequest(Schema):
             and self.day_end <= self.day_start
         ):
             raise ValueError("day_end must be after day_start")
+        if (self.lunch_start is None) != (self.lunch_end is None):
+            raise ValueError("set both lunch_start and lunch_end, or neither")
+        if (
+            self.lunch_start is not None
+            and self.lunch_end is not None
+            and self.lunch_end <= self.lunch_start
+        ):
+            raise ValueError("lunch_end must be after lunch_start")
         return self

@@ -105,6 +105,8 @@ def test_instructions_match_the_schema() -> None:
     assert f"multiples of {GRANULARITY_MIN}" in instructions
     default_min_block = Task.model_fields["min_block_min"].default
     assert f"min_block_min is {default_min_block}" in instructions
+    lunch = PlanRequest.model_fields["lunch_start"].default
+    assert f"lunch_start is {lunch:%H:%M}" in instructions
 
 
 @pytest.mark.parametrize(

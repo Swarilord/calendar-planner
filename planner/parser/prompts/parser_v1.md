@@ -28,12 +28,17 @@ Wishes
 - "Keep <day> evening free" is a blocked window from 18:00 to 24:00 that day;
   "morning" is 06:00-12:00, "afternoon" 12:00-18:00.
 - Set max_work_min_per_day only if the user asks for a daily limit.
+- Lunch is 11:00-12:00 unless the user says otherwise ("lunch at 12:30" sets
+  lunch_start 12:30 and lunch_end 13:30). "No lunch break" sets both to null.
+  The solver avoids lunch but may use it; if the user insists ("keep lunch
+  free"), also add a blocked window for it on each day.
 
 Fields the user did not mention
 - earliest_start, max_block_min, day_start, day_end and max_work_min_per_day are
   null: write a self-closing tag such as <day_end/>. Never an empty tag
   <day_end></day_end>, which means empty text and is rejected.
-- min_block_min is 30, blocked has no items, timezone is Europe/Zurich.
+- min_block_min is 30, lunch_start is 11:00 and lunch_end is 12:00, blocked has
+  no items, timezone is Europe/Zurich.
 
 The calendar summary shows existing events for context only ("after my lecture").
 Do not copy events into blocked windows; the solver already avoids them.

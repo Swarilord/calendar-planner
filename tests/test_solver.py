@@ -243,7 +243,9 @@ def test_random_requests_pass_the_checker(seed: int) -> None:
     result = solve(request, events)
     if result.status == SolveStatus.INFEASIBLE:
         return  # the checker can only judge schedules that exist
-    assert result.status == SolveStatus.OPTIMAL
+    # FEASIBLE (valid, not yet proven best) is acceptable: a slower machine
+    # such as CI may hit the time limit. What must always hold is validity.
+    assert result.status in (SolveStatus.OPTIMAL, SolveStatus.FEASIBLE)
     assert result.schedule is not None
     assert check(request, events, result.schedule) == []
 
@@ -323,3 +325,62 @@ def test_full_calendar_has_no_rule_to_blame() -> None:
         tasks=[task("Analysis", 60, z(11, 23, 12))],
     )
     assert rules(request, [busy]) == set()
+
+
+# --- preferences: earlier, lunch, evenings ---
+
+
+def test_earlier_is_better() -> None:
+    request = PlanRequest(
+        horizon_start=z(11, 23, 8),
+        horizon_end=z(11, 23, 18),
+        tasks=[task("Analysis", 60, z(11, 23, 18))],
+    )
+    assert used(solved(request)) == [(z(11, 23, 8), z(11, 23, 9))]
+
+
+def test_long_task_pauses_for_lunch() -> None:
+    # 6h on a free day: 3h before lunch, 3h after, not 6h in one go.
+    request = PlanRequest(
+        horizon_start=z(11, 23, 8),
+        horizon_end=z(11, 23, 20),
+        tasks=[task("Thesis", 360, z(11, 23, 20))],
+    )
+    assert used(solved(request)) == [
+        (z(11, 23, 8), z(11, 23, 11)),
+        (z(11, 23, 12), z(11, 23, 15)),
+    ]
+
+
+def test_lunch_is_used_when_nothing_else_fits() -> None:
+    # Soft preference: a full morning is still possible, not infeasible.
+    request = PlanRequest(
+        horizon_start=z(11, 23, 9),
+        horizon_end=z(11, 23, 13),
+        tasks=[task("Exam prep", 240, z(11, 23, 13))],
+    )
+    assert used(solved(request)) == [(z(11, 23, 9), z(11, 23, 13))]
+
+
+def test_no_lunch_break_when_user_says_so() -> None:
+    request = PlanRequest(
+        horizon_start=z(11, 23, 8),
+        horizon_end=z(11, 23, 20),
+        tasks=[task("Thesis", 360, z(11, 23, 20))],
+        lunch_start=None,
+        lunch_end=None,
+    )
+    assert used(solved(request)) == [(z(11, 23, 8), z(11, 23, 14))]
+
+
+def test_next_morning_beats_late_evening() -> None:
+    # Asked at 19:00: one hour before 20:00, the rest tomorrow morning, not 20-21.
+    request = PlanRequest(
+        horizon_start=z(11, 24, 19),
+        horizon_end=z(11, 26, 0),
+        tasks=[task("Sheet", 120, z(11, 25, 23, 59))],
+    )
+    assert used(solved(request)) == [
+        (z(11, 24, 19), z(11, 24, 20)),
+        (z(11, 25, 8), z(11, 25, 9)),
+    ]

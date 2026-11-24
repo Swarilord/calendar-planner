@@ -25,10 +25,16 @@ from planner.solver.grid import Grid, build_grid
 
 TIME_LIMIT_S = 10.0
 
-# Objective weights: one extra block costs as much as an hour (4 slots) of
-# unpleasant time. Integers, because CP-SAT objectives are whole numbers.
-BLOCK_COST = 4
-UNPLEASANT_SLOT_COST = 1
+# Objective weights, per slot (whole numbers: CP-SAT objectives are integers).
+# Unit: one slot of work done one slot later costs 1 ("delay"). So one hour of
+# work done one hour later costs 4 x 4 = 16, a quarter of a block.
+BLOCK_COST = 64
+# A 1h lunch (4 x 32 = 128, two blocks) costs more than splitting a block around
+# it (one extra block + the delay of the moved work), so long tasks pause.
+LUNCH_SLOT_COST = 32
+# More than waiting overnight (12h = 48 slots of delay), so work is moved to the
+# next morning rather than into the evening; evenings stay free.
+UNPLEASANT_SLOT_COST = 100
 PLEASANT_FROM = time(8, 0)  # local time; slots outside [8:00, 20:00) cost extra
 PLEASANT_UNTIL = time(20, 0)
 
@@ -250,11 +256,14 @@ def _build(request: PlanRequest, grid: Grid, *, explain: bool) -> _Built:
                 sum(row[t] for row in x for t in day_slots) <= cap
             ).only_enforce_if(cap_on)
 
-    # Objective: few blocks first, then few unpleasant (early/late) slots.
+    # Objective: few blocks, no evening/early or lunch work, and work done early.
     unpleasant = [t for t in slots if _is_unpleasant(grid.starts[t], tz)]
+    lunch = [t for t in slots if _is_lunch(grid.starts[t], request, tz)]
     model.minimize(
         BLOCK_COST * sum(sum(row) for row in s)
         + UNPLEASANT_SLOT_COST * sum(row[t] for row in x for t in unpleasant)
+        + LUNCH_SLOT_COST * sum(row[t] for row in x for t in lunch)
+        + sum(t * row[t] for row in x for t in slots)  # delay: later slots cost more
     )
 
     literals = [sw.literal for sw in switches]
@@ -295,6 +304,13 @@ def _solver(time_limit_s: float) -> cp_model.CpSolver:
 
 def _local(moment: datetime, tz: ZoneInfo) -> str:
     return f"{moment.astimezone(tz):%a %d %b %H:%M}"
+
+
+def _is_lunch(slot_start: datetime, request: PlanRequest, tz: ZoneInfo) -> bool:
+    if request.lunch_start is None or request.lunch_end is None:
+        return False
+    clock = slot_start.astimezone(tz).time()
+    return request.lunch_start <= clock < request.lunch_end
 
 
 def _is_unpleasant(slot_start: datetime, tz: ZoneInfo) -> bool:

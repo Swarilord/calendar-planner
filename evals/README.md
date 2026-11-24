@@ -48,3 +48,15 @@ Wishes
 - "Nothing before 9" sets day_start for every day; "keep X free" is a blocked
   window. "Keep lunch free" adds a blocked 11:00-12:00 window on each day.
 - Lunch is 11:00-12:00 unless changed; "no lunch break" sets both to null.
+
+## Parser prompt versions
+
+| Version | Made by |
+|---|---|
+| `parser_v1.md` | written by hand (Phase 4) |
+| `parser_v2.md` | GEPA, unchanged (budget 150, `gemini-3.5-flash-lite`, train split only) |
+| `parser_v3.md` | GEPA + hand fix: v2 with three review fixes, made before any test-split run |
+
+The hand fixes in v3, found by reading v2 (not by looking at test results):
+"this weekend" starts on Saturday, not Friday; the parser answers in XML, not
+JSON; times are written in local time with offset, never "converted to UTC".

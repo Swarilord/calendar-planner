@@ -103,9 +103,10 @@ def test_prompt_contains_instructions_text_and_local_now() -> None:
     assert "Tuesday 2026-11-24 10:00 +0100 (Europe/Zurich)" in sent
 
 
-def test_instructions_match_the_schema() -> None:
+@pytest.mark.parametrize("version", [PROMPT_VERSION, "v3"])
+def test_instructions_match_the_schema(version: str) -> None:
     # The prompt states rules in words; the schema enforces them in code.
-    instructions = load_instructions(PROMPT_VERSION)
+    instructions = load_instructions(version)
     assert f"multiples of {GRANULARITY_MIN}" in instructions
     default_min_block = Task.model_fields["min_block_min"].default
     assert f"min_block_min is {default_min_block}" in instructions
@@ -115,6 +116,14 @@ def test_instructions_match_the_schema() -> None:
     assert f"day_start is {day_start:%H:%M}" in instructions
     cap = PlanRequest.model_fields["max_work_min_per_day"].default
     assert f"max_work_min_per_day is {cap}" in instructions
+
+
+def test_v3_is_gepa_v2_with_three_hand_fixes() -> None:
+    # v2 is GEPA's raw output and stays unchanged; v3 fixes what review found.
+    v2, v3 = load_instructions("v2"), load_instructions("v3")
+    assert "Friday 00:00" in v2 and '"this weekend" is Saturday 00:00' in v3
+    assert "JSON" in v2 and "JSON" not in v3  # the parser answers in XML
+    assert "converted to UTC" in v2 and "converted to UTC" not in v3
 
 
 @pytest.mark.parametrize(

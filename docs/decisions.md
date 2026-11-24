@@ -555,3 +555,8 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** the agent prompt says the reply is shown as written: no reasoning, no quoted instructions. Found in the live chat: the model's reasoning ("Wait, the user did give a duration...") and a quoted rule appeared in the reply as normal text; the code already drops Gemini's separate thought parts, so a filter can't catch it.
 - **Alternatives:** filter the reply in code (no reliable marker to filter on); always use the stronger default model (more quota per call); a second LLM call to clean the reply (slower, another failure point).
 - **Why:**
+
+### GEPA's prompt hand-fixed as a new version (v3) before the test runs
+- **Chose:** keep GEPA's output as `parser_v2.md` unchanged; write `parser_v3.md` = v2 + three fixes found by reading it ("this weekend" starts Saturday not Friday; XML not JSON; local times, not "converted to UTC"); compare v1 vs v3 on the test split and report v3 as "GEPA + hand fix".
+- **Alternatives:** test v2 as GEPA wrote it (a pure GEPA result, with a known bug); edit v2 in place (loses the record of what GEPA wrote); rerun GEPA with a better metric (more quota and time).
+- **Why:**

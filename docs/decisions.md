@@ -441,3 +441,25 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** the parser turns any DSPy `LMError` into `ParserUnavailableError`; `propose_plan`/`revise_plan` return `status: "unavailable"`, and the agent asks the user to try again. Found in the first live run: a parser timeout inside a tool crashed the chat.
 - **Alternatives:** let it propagate (crash with a traceback); report it as a parse error with details (would wrongly tell the user their request was unclear).
 - **Why:**
+
+## Phase 5: evals
+
+### Eval data drafted and reviewed by Claude
+- **Chose:** Claude drafts and reviews all 50 cases; automatic checks (schema, conventions, solver agrees with the feasibility label) back it up; judgement calls are listed in `evals/README.md`.
+- **Alternatives:** Claude drafts, I review every case; I write all cases; Gemini generates them (Gemini grading Gemini).
+- **Why:**
+
+### 50 cases, 35 train / 15 held-out test
+- **Chose:** a hand-balanced split so the test part has infeasible, DST, recurring, multi-task and next-week cases.
+- **Alternatives:** random split; more cases (more calls and review time); no held-out part.
+- **Why:**
+
+### Dataset as JSON Lines with local times
+- **Chose:** `evals/cases_v1.jsonl` (one case per line, Zurich times with offsets) plus named calendars in `evals/calendars.json`.
+- **Alternatives:** cases written as Python code; UTC times; a calendar copied into every case.
+- **Why:**
+
+### Gold conventions written down
+- **Chose:** `evals/README.md` states every judgement rule (evening = 18-24, horizon, "every day" includes today, ...), matching `parser_v1.md`.
+- **Alternatives:** decide case by case without written rules.
+- **Why:**

@@ -71,13 +71,16 @@ class PlanRequest(Schema):
     blocked: list[Window] = []  # Pydantic copies this default, so it is safe
     # Times of day are wall-clock times in `timezone`, not UTC:
     # "nothing before 9" means 9:00 in Zurich in both summer and winter.
-    day_start: time | None = None
+    # Sensible defaults, so an unbounded request ("20 hours tomorrow") becomes a
+    # clear "impossible" instead of an all-night plan. The user can override
+    # them; None means "no limit" (day_end None = until midnight).
+    day_start: time | None = time(7, 0)
     day_end: time | None = None
     # Preferred lunch break (local clock). A soft preference: the solver avoids
     # it but may use it if nothing else fits. None/None = no lunch break.
     lunch_start: time | None = time(11, 0)
     lunch_end: time | None = time(12, 0)
-    max_work_min_per_day: PositiveInt | None = None
+    max_work_min_per_day: PositiveInt | None = 12 * 60
     timezone: str = "Europe/Zurich"
 
     @field_validator("timezone")

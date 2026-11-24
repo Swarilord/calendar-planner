@@ -111,6 +111,10 @@ def test_instructions_match_the_schema() -> None:
     assert f"min_block_min is {default_min_block}" in instructions
     lunch = PlanRequest.model_fields["lunch_start"].default
     assert f"lunch_start is {lunch:%H:%M}" in instructions
+    day_start = PlanRequest.model_fields["day_start"].default
+    assert f"day_start is {day_start:%H:%M}" in instructions
+    cap = PlanRequest.model_fields["max_work_min_per_day"].default
+    assert f"max_work_min_per_day is {cap}" in instructions
 
 
 @pytest.mark.parametrize(

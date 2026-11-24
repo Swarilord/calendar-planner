@@ -25,6 +25,9 @@ REQUEST = PlanRequest(
     horizon_start=z(23, 0),
     horizon_end=z(30, 0),
     tasks=[Task(name="Analysis", duration_min=120, deadline=z(26, 23, 59))],
+    # No default limits: each test switches on only the rule it is about.
+    day_start=None,
+    max_work_min_per_day=None,
 )
 LECTURE = Event(id="lecture", title="Lecture", start=z(23, 9), end=z(23, 11))
 
@@ -352,5 +355,6 @@ def test_daily_cap_counts_real_minutes_on_dst_day() -> None:
         horizon_end=mar(31, 0),
         tasks=[Task(name="Analysis", duration_min=120, deadline=mar(31, 0))],
         max_work_min_per_day=150,
+        day_start=None,  # the block is at night; this test is about the cap
     )
     assert all_kinds(request, ("Analysis", mar(29, 1), mar(29, 4))) == []

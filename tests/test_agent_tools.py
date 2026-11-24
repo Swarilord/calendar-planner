@@ -161,7 +161,11 @@ def test_unparseable_request_returns_the_reasons() -> None:
 def test_impossible_request_is_explained() -> None:
     # 20 h between 9 and 22 tomorrow: brief example 5.
     impossible = request(
-        20 * 60, z(25, 0), day_start=time(9), day_end=time(22)
+        20 * 60,
+        z(25, 0),
+        day_start=time(9),
+        day_end=time(22),
+        max_work_min_per_day=None,  # only the day hours can be blamed
     ).model_copy(update={"horizon_start": z(24, 0)})
     tools, _, _ = make_tools(ParseResult(impossible), events=())
     result = tools.propose_plan("Fit 20 hours of revision into today")

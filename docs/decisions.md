@@ -530,3 +530,13 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** A's task list is a lenient `StatedTask` (name, optional duration and deadline, extra fields ignored), used only to pair its blocks with gold tasks; `match_tasks` accepts anything with those three fields (`TaskLike` protocol). Found in the first live run: c23 failed on an empty `max_block_min` in the side list, though the schedule was never looked at.
 - **Alternatives:** keep the strict `Task` schema for A's list (A fails for things that don't affect the user's plan); drop the list and pair blocks by time.
 - **Why:**
+
+### Default limits: 07:00 to midnight, 12 h per day
+- **Chose:** `day_start` defaults to 07:00 (`day_end` None = midnight) and `max_work_min_per_day` to 720; the user's words override them, and None lifts a limit. Found in the live chat: "20h of revision tomorrow" became a 15-hour all-night block; now it is "impossible: at most 720 min of work per day". Stated in the parser and Baseline A prompts, so both baselines get the same rules.
+- **Alternatives:** no defaults (all-night plans are "valid"); a stricter 8 h cap; a default maximum block length (e.g. 3 h).
+- **Why:**
+
+### Agent rule: revise_plan only for changes to the current draft
+- **Chose:** the agent prompt says a new task or request after a draft is a new plan (`propose_plan`). Found twice in live runs.
+- **Alternatives:** let `revise_plan` merge everything (mixes old tasks into new requests); remove `revise_plan`.
+- **Why:**

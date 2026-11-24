@@ -84,6 +84,8 @@ def test_instruction_has_the_brief_rules_and_no_placeholders() -> None:
     instruction = load_instruction()
     assert "Call get_now" in instruction
     assert "Confirm" in instruction
+    # Live run: "20h of revision tomorrow" after a draft went to revise_plan.
+    assert "A new task or a new request, even right" in instruction
     # ADK reads {name} in an instruction as a session-state variable.
     assert "{" not in instruction and "}" not in instruction
 

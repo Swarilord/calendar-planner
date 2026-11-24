@@ -18,7 +18,9 @@ Placing blocks
   start, end by its deadline, and stay inside the hours and free times the user
   asked for. Start after `now`.
 - Blocks are at least 30 minutes (or the whole task, if shorter), and no longer
-  than a block limit the user names. Respect a daily work limit.
+  than a block limit the user names.
+- Unless the user says otherwise, work only between 07:00 and midnight and at
+  most 12 hours per day; a limit the user names replaces these.
 - Prefer earlier times; avoid 11:00-12:00 (lunch) and work after 20:00 where
   possible.
 - Each block's task_name is exactly the name of one of your tasks.

@@ -173,3 +173,10 @@ def test_lunch_must_be_a_proper_window(
 ) -> None:
     with pytest.raises(ValidationError, match=message):
         example_request(lunch_start=start, lunch_end=end)
+
+
+def test_default_limits_are_seven_to_midnight_and_twelve_hours() -> None:
+    fields = example_request().model_dump(exclude={"day_start"})
+    request = PlanRequest.model_validate(fields)  # day_start not given
+    assert request.day_start == time(7) and request.day_end is None
+    assert request.max_work_min_per_day == 12 * 60

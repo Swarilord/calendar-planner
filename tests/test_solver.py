@@ -267,6 +267,7 @@ def test_twenty_hours_tomorrow_blames_day_hours() -> None:
         tasks=[task("Revision", 20 * 60, z(11, 25, 0))],
         day_start=time(9),
         day_end=time(22),
+        max_work_min_per_day=None,  # only day hours, so they must be blamed
     )
     result = solve(request, [])
     assert [c.rule for c in result.conflicts] == [Rule.DAY_HOURS]
@@ -386,3 +387,44 @@ def test_next_morning_beats_late_evening() -> None:
         (z(11, 24, 19), z(11, 24, 20)),
         (z(11, 25, 8), z(11, 25, 9)),
     ]
+
+
+# --- default limits (07:00 to midnight, 12 h per day) ---
+
+
+def test_twenty_hours_tomorrow_is_impossible_by_default() -> None:
+    # Brief example 5 in its original words: no hours given. Before the
+    # defaults this was "feasible" with an all-night 15-hour block.
+    request = PlanRequest(
+        horizon_start=z(11, 24, 19),
+        horizon_end=z(11, 26, 0),
+        tasks=[
+            task("Revision", 20 * 60, z(11, 25, 23, 59), earliest_start=z(11, 25, 0))
+        ],
+    )
+    result = solve(request, [])
+    assert result.status == SolveStatus.INFEASIBLE
+    assert [c.description for c in result.conflicts] == [
+        "at most 720 min of work per day"
+    ]
+
+
+def test_no_work_before_seven_by_default() -> None:
+    request = PlanRequest(
+        horizon_start=z(11, 24, 0),
+        horizon_end=z(11, 25, 0),
+        tasks=[task("Revision", 60, z(11, 24, 8))],
+    )
+    assert used(solved(request)) == [(z(11, 24, 7), z(11, 24, 8))]
+
+
+def test_user_can_lift_the_defaults() -> None:
+    # "I can work all night, no daily limit": the parser sets both to None.
+    request = PlanRequest(
+        horizon_start=z(11, 24, 0),
+        horizon_end=z(11, 25, 0),
+        tasks=[task("Revision", 60, z(11, 24, 2))],
+        day_start=None,
+        max_work_min_per_day=None,
+    )
+    assert used(solved(request)) == [(z(11, 24, 0), z(11, 24, 1))]

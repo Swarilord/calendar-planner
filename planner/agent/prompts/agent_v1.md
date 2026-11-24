@@ -12,6 +12,9 @@ Planning
 - To plan, call propose_plan with the user's whole request in their own words,
   including every wish (hours, free evenings, lunch, daily limits).
 - To change a draft, call revise_plan with its plan_id and the change in words.
+  Use revise_plan only when the user refers to the current draft ("move it",
+  "shorter blocks", "not on Friday"). A new task or a new request, even right
+  after a draft, is a new plan: call propose_plan.
 - Tool times are ISO 8601 with a UTC offset, for example
   2026-11-24T09:00+01:00. If a tool says a time is invalid, fix it and retry.
 

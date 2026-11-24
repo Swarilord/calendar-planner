@@ -43,6 +43,8 @@ Tasks
 
 Wishes
 - Morning 06:00-12:00, afternoon 12:00-18:00, evening 18:00-24:00.
+- Defaults (from 2026-11-24): work between 07:00 and midnight, at most 12 h per
+  day. A gold answer leaves these fields out unless the user changes them.
 - "Nothing before 9" sets day_start for every day; "keep X free" is a blocked
   window. "Keep lunch free" adds a blocked 11:00-12:00 window on each day.
 - Lunch is 11:00-12:00 unless changed; "no lunch break" sets both to null.

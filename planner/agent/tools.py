@@ -6,6 +6,7 @@ returns a small dict with a `status` field. No tool writes to the calendar:
 plans stay drafts until the user confirms in the UI (Phase 8).
 """
 
+import logging
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -21,6 +22,7 @@ from planner.schedule import ScheduledBlock
 from planner.solver.model import SolveResult, SolveStatus, solve
 
 TIMEZONE = "Europe/Zurich"
+log = logging.getLogger(__name__)
 SUMMARY_DAYS = 7  # how far ahead the parser sees existing events
 MAX_EVENTS = 50  # keep tool outputs small, so the agent's context stays small
 
@@ -139,7 +141,10 @@ class PlannerTools:
         upcoming = self.calendar.list_events(now, now + timedelta(days=SUMMARY_DAYS))
         try:
             parsed = self.parser.parse(text, now, self.summarize(upcoming))
-        except ParserUnavailableError:
+        except ParserUnavailableError as error:
+            # The agent only needs "try again"; the reason (rate limit,
+            # timeout, 503) goes to the log for the developer.
+            log.warning("parser unavailable: %s", error)
             return {
                 "status": "unavailable",
                 "message": "The planning service (Gemini) did not answer. "

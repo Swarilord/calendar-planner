@@ -225,15 +225,18 @@ def test_free_slots_with_an_event_inside_another() -> None:
     ]
 
 
-def test_parser_outage_is_returned_not_raised() -> None:
+def test_parser_outage_is_returned_not_raised(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     class DownParser:
         def parse(
             self, text: str, now: datetime, calendar_summary: str = ""
         ) -> ParseResult:
-            raise ParserUnavailableError("gemini did not answer")
+            raise ParserUnavailableError("gemini did not answer: LMRateLimitError")
 
     tools = PlannerTools(FakeCalendar([LECTURE]), DownParser(), clock=lambda: NOW)
     result = tools.propose_plan("Analysis, 2h")
     assert result["status"] == "unavailable"
     assert "try again" in result["message"]
     assert tools.drafts == {}
+    assert "LMRateLimitError" in caplog.text  # the reason is logged

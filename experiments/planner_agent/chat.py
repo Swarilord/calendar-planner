@@ -19,6 +19,10 @@ async def main() -> None:
     # ADK logs every model error with a full traceback before run_turn turns it
     # into one clear message; in this demo, show only that message.
     logging.getLogger("google_adk").setLevel(logging.CRITICAL)
+    # Our own warnings (e.g. why the parser was unavailable) stay visible.
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("   ! %(message)s"))
+    logging.getLogger("planner").addHandler(handler)
     runner = InMemoryRunner(agent=root_agent, app_name="planner")
     session = await runner.session_service.create_session(
         app_name="planner", user_id="me"

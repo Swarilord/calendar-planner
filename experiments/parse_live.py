@@ -29,6 +29,9 @@ def main() -> None:
         temperature=0.0,  # same text -> (nearly) the same answer
         cache=False,  # always ask Gemini, never an old cached answer
         num_retries=1,  # fail fast instead of retrying silently (Phase 1 lesson)
+        timeout=30,  # seconds; without it the engine's default can wait very long
+        # Gemini 3 thinks before answering: "high" took 56 s, "low" about 13 s.
+        reasoning_effort="low",
     )
     result = Parser(lm).parse(text, datetime.now(UTC))
     print(f"model={result.model}  prompt={result.prompt_version}\n")

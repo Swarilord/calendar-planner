@@ -13,7 +13,7 @@ from planner.parser.parse import (
     describe_now,
     load_instructions,
 )
-from planner.parser.schemas import GRANULARITY_MIN, PlanRequest
+from planner.parser.schemas import GRANULARITY_MIN, PlanRequest, Task
 
 ZURICH = ZoneInfo("Europe/Zurich")
 NOW = datetime(2026, 11, 24, 10, 0, tzinfo=ZURICH)
@@ -63,6 +63,8 @@ def test_result_records_prompt_version_and_model() -> None:
         ("duration_min", 50, "tasks.0.duration_min: Value error, must be a multiple"),
         ("duration_min", "about 4 hours", "tasks.0.duration_min: Input should be"),
         ("deadline", "2026-11-26T23:59:00", "tasks.0.deadline: Input should have"),
+        # Real Gemini wrote empty tags for unmentioned fields (prompt v1 draft).
+        ("min_block_min", "", "tasks.0.min_block_min: Input should be"),
     ],
 )
 def test_invalid_answer_keeps_pydantic_reason(
@@ -94,9 +96,12 @@ def test_prompt_contains_instructions_text_and_local_now() -> None:
     assert "Tuesday 2026-11-24 10:00 +0100 (Europe/Zurich)" in sent
 
 
-def test_instructions_match_the_schema_granularity() -> None:
-    # The prompt states the rule in words; the schema enforces it in code.
-    assert f"multiples of {GRANULARITY_MIN}" in load_instructions(PROMPT_VERSION)
+def test_instructions_match_the_schema() -> None:
+    # The prompt states rules in words; the schema enforces them in code.
+    instructions = load_instructions(PROMPT_VERSION)
+    assert f"multiples of {GRANULARITY_MIN}" in instructions
+    default_min_block = Task.model_fields["min_block_min"].default
+    assert f"min_block_min is {default_min_block}" in instructions
 
 
 @pytest.mark.parametrize(

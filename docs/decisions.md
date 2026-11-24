@@ -331,3 +331,18 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `ignore_missing_imports` for `dspy.*` and `disallow_subclassing_any = false` only for `planner.parser.parse`.
 - **Alternatives:** write stub files for DSPy; turn off strict mode; `# type: ignore` on each line.
 - **Why:**
+
+### Gemini thinking level "low" for the parser
+- **Chose:** `reasoning_effort="low"` (measured on the brief's example 1: 12.7 s and valid, vs 56 s at the default level).
+- **Alternatives:** the model's default (high); "minimal"; a different model.
+- **Why:**
+
+### Unmentioned fields spelled out per field
+- **Chose:** the instruction says which fields are null (self-closing tag), which get a default (`min_block_min` 30) and which are empty lists.
+- **Alternatives:** "leave optional fields empty" (Gemini wrote empty tags, which Pydantic rejected); make the schema turn empty text into None.
+- **Why:**
+
+### A prompt version is frozen once evaluated
+- **Chose:** `parser_v1.md` may still change until its first eval in Phase 5; after that, every change is a new file (`v2`, ...).
+- **Alternatives:** a new version for every edit from the start; edit in place forever (eval results can no longer be traced to a prompt).
+- **Why:**

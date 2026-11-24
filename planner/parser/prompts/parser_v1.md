@@ -19,8 +19,8 @@ Tasks
 - A recurring wish ("1h every day") becomes one task per day, named with the day
   (e.g. "Midterm revision Wed"), with earliest_start at 00:00 and deadline at 23:59
   of that day.
-- Set min_block_min and max_block_min only if the user mentions block lengths
-  ("at most 2h in one go"); otherwise leave the defaults.
+- min_block_min is 30 unless the user names a shortest block. max_block_min is
+  set only if the user names a longest block ("at most 2h in one go").
 
 Wishes
 - "Nothing before 9" sets day_start 09:00; "not after 22" sets day_end 22:00.
@@ -28,7 +28,12 @@ Wishes
 - "Keep <day> evening free" is a blocked window from 18:00 to 24:00 that day;
   "morning" is 06:00-12:00, "afternoon" 12:00-18:00.
 - Set max_work_min_per_day only if the user asks for a daily limit.
-- Leave every optional field empty if the user did not ask for it.
+
+Fields the user did not mention
+- earliest_start, max_block_min, day_start, day_end and max_work_min_per_day are
+  null: write a self-closing tag such as <day_end/>. Never an empty tag
+  <day_end></day_end>, which means empty text and is rejected.
+- min_block_min is 30, blocked has no items, timezone is Europe/Zurich.
 
 The calendar summary shows existing events for context only ("after my lecture").
 Do not copy events into blocked windows; the solver already avoids them.

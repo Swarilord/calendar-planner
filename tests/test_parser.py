@@ -77,7 +77,10 @@ def test_invalid_answer_keeps_pydantic_reason(
 
 def test_invalid_answer_costs_exactly_one_call() -> None:
     # DSPy would otherwise retry silently in JSON format (a second LM call).
-    _, lm = parse_with(reply(duration_min=50), reply())
+    # The good second answer is the danger: a hidden retry would turn this
+    # failure into a "success" that looks like a first-try answer.
+    result, lm = parse_with(reply(duration_min=50), reply())
+    assert result.request is None
     assert len(lm.history) == 1
 
 

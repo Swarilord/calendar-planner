@@ -10,7 +10,8 @@ changes go into `cases_v2.jsonl`.
 
 ## How the gold answers were made
 
-Drafted and reviewed by Claude (2026-11-24), following the conventions below,
+Drafted and reviewed by Claude (2026-11-24); most cases were also reviewed by
+me (the project author) the same day. They follow the conventions below,
 which match the parser prompt `parser_v1.md`. Automatic checks
 (`tests/test_eval_data.py`): every gold answer validates as a `PlanRequest`,
 the horizon starts at `now` and covers every deadline, and the CP-SAT solver

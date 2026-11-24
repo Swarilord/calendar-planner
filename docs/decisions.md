@@ -463,3 +463,13 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `evals/README.md` states every judgement rule (evening = 18-24, horizon, "every day" includes today, ...), matching `parser_v1.md`.
 - **Alternatives:** decide case by case without written rules.
 - **Why:**
+
+### Parser scored as a list of categorised mistakes
+- **Chose:** `score_parse(gold, predicted)` lists every mistake (`missing_task`, `wrong_deadline`, `wrong_blocked`, ...); a case is exact if there are none. Counting categories is the error analysis.
+- **Alternatives:** one number per case (e.g. % of fields correct); an LLM judge comparing the two requests.
+- **Why:**
+
+### Tasks paired by similarity, names not scored
+- **Chose:** pair gold and predicted tasks greedily by similarity (same deadline 2, same duration 1, shared name words up to 1); unpaired tasks are missing or extra.
+- **Alternatives:** pair by exact name (fails on "Analysis" vs "Analysis sheet"); pair by list order; optimal assignment (more code, same result on small task lists).
+- **Why:**

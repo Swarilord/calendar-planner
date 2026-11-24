@@ -16,7 +16,7 @@ from google.genai import errors as genai_errors
 from google.genai import types
 
 from planner.agent.tools import PlannerTools
-from planner.llm import MODEL, TIMEOUT_S, agent_config
+from planner.llm import TIMEOUT_S, agent_config, model_name
 
 AGENT_PROMPT_VERSION = "v1"
 PROMPTS_DIR = Path(__file__).parent / "prompts"
@@ -38,12 +38,12 @@ def load_instruction(version: str = AGENT_PROMPT_VERSION) -> str:
 
 def build_agent(
     tools: PlannerTools,
-    model: str | BaseLlm = MODEL,
+    model: str | BaseLlm | None = None,
     timeout_s: float = TIMEOUT_S,
 ) -> Agent:
     return Agent(
         name="calendar_planner",
-        model=model,
+        model=model or model_name(),
         description="Plans study time around the user's calendar.",
         instruction=load_instruction(),
         # Bound methods: ADK reads each name, docstring and parameters.

@@ -10,7 +10,7 @@ from typing import Any
 import dspy
 from google.genai import types
 
-MODEL = "gemini-3.6-flash"
+DEFAULT_MODEL = "gemini-3.6-flash"
 TIMEOUT_S = 30  # per attempt
 ATTEMPTS = 2  # the first try plus one retry
 # Gemini 3 thinks before answering; "low" was measured at ~13 s per parse vs
@@ -18,10 +18,16 @@ ATTEMPTS = 2  # the first try plus one retry
 THINKING = "low"
 
 
-def parser_lm(model: str = MODEL) -> Any:
+def model_name() -> str:
+    """The Gemini model to use: PLANNER_MODEL if set (e.g. when the default is
+    overloaded), else DEFAULT_MODEL. Read at call time, so tests can set it."""
+    return os.environ.get("PLANNER_MODEL", DEFAULT_MODEL)
+
+
+def parser_lm(model: str | None = None) -> Any:
     """The DSPy LM for the request parser. DSPy's timeout is in seconds."""
     return dspy.LM(
-        f"gemini/{model}",
+        f"gemini/{model or model_name()}",
         api_key=os.environ["GOOGLE_API_KEY"],
         temperature=0.0,
         cache=False,  # always ask Gemini; evals must not reuse old answers

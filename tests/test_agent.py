@@ -24,7 +24,7 @@ from planner.agent.agent import (
     run_turn,
 )
 from planner.agent.tools import PlannerTools
-from planner.llm import parser_lm
+from planner.llm import DEFAULT_MODEL, parser_lm
 from tests.test_agent_tools import NOW, z
 from tests.test_agent_tools import make_tools as make_planner_tools
 
@@ -106,6 +106,18 @@ def test_parser_lm_has_the_same_limits(monkeypatch: pytest.MonkeyPatch) -> None:
     assert lm.kwargs["timeout"] == 30  # seconds in DSPy
     assert lm.kwargs["reasoning_effort"] == "low"
     assert lm.num_retries == 1
+
+
+def test_model_can_be_switched_without_code_changes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tools, _, _ = make_planner_tools()
+    monkeypatch.delenv("PLANNER_MODEL", raising=False)
+    assert build_agent(tools).model == DEFAULT_MODEL
+    monkeypatch.setenv("PLANNER_MODEL", "gemini-3.5-flash-lite")
+    monkeypatch.setenv("GOOGLE_API_KEY", "not-a-real-key")
+    assert build_agent(tools).model == "gemini-3.5-flash-lite"
+    assert parser_lm().model == "gemini/gemini-3.5-flash-lite"
 
 
 # --- the full ADK loop with a scripted model ---

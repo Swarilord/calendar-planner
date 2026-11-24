@@ -431,3 +431,8 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `experiments/planner_agent/` builds the agent on a FakeCalendar with two weeks of lectures and the real parser; `chat.py` shows each tool call.
 - **Alternatives:** a demo inside `planner/`; a JSON calendar file with fixed dates (would be in the past next week).
 - **Why:**
+
+### Model chosen by environment variable
+- **Chose:** `PLANNER_MODEL` overrides `DEFAULT_MODEL` (gemini-3.6-flash) for parser and agent, read at call time. On 2026-11-24 most flash models returned 503/504 and only the lite models answered.
+- **Alternatives:** edit the constant in code each time; automatic fallback to another model (hides which model produced an answer, which evals must record).
+- **Why:**

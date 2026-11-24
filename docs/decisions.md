@@ -346,3 +346,38 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `parser_v1.md` may still change until its first eval in Phase 5; after that, every change is a new file (`v2`, ...).
 - **Alternatives:** a new version for every edit from the start; edit in place forever (eval results can no longer be traced to a prompt).
 - **Why:**
+
+### Tools as methods of one class with injected parts
+- **Chose:** `PlannerTools(calendar, parser, clock)`; tests pass `FakeCalendar`, a fake parser and a fixed clock.
+- **Alternatives:** module-level functions using global objects; build the real calendar and parser inside each tool.
+- **Why:**
+
+### Tool errors are returned, not raised
+- **Chose:** every tool returns a dict with `status` (`ok`, `error`, `infeasible`) and a message the agent can read.
+- **Alternatives:** raise exceptions and let ADK report them.
+- **Why:**
+
+### Tools never write to the calendar
+- **Chose:** `propose_plan`/`revise_plan` only store drafts (`plan-1`, `plan-2`, ...) in memory; a test checks the calendar is unchanged.
+- **Alternatives:** an `apply_plan` agent tool (the brief rules this out: writes only after a Confirm click).
+- **Why:**
+
+### The checker runs inside `propose_plan`
+- **Chose:** every solved plan is checked before the agent sees it; violations become an "internal error".
+- **Alternatives:** check only in tests and evals.
+- **Why:**
+
+### `revise_plan` re-parses the original text plus the change
+- **Chose:** text = original request + "Change: ...", giving a new draft id; old drafts are kept.
+- **Alternatives:** let the parser edit the old `PlanRequest` directly; overwrite the old draft.
+- **Why:**
+
+### All existing events count as busy, including the planner's own
+- **Chose:** for now the solver avoids every event; moving earlier planner blocks (brief examples 2 and 3) is left for Phase 7.
+- **Alternatives:** treat events with `created_by_planner` as movable now.
+- **Why:**
+
+### Agent sees Zurich time only
+- **Chose:** tool outputs show local times like "Tue 24 Nov 09:00"; tool inputs must be ISO 8601 with an offset.
+- **Alternatives:** UTC everywhere in tool outputs; accept times without an offset and assume Zurich.
+- **Why:**

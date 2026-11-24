@@ -550,3 +550,8 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** the agent prompt forbids judging whether a request fits; it always calls `propose_plan`. Found in the live chat: the agent answered "20h of revision tomorrow" itself with wrong arithmetic ("24 hours total") instead of the solver's reason.
 - **Alternatives:** let the agent pre-filter obviously impossible requests (saves a call, but its arithmetic is unreliable); a code-level check before the agent replies.
 - **Why:**
+
+### Agent rule: reply text only, no reasoning
+- **Chose:** the agent prompt says the reply is shown as written: no reasoning, no quoted instructions. Found in the live chat: the model's reasoning ("Wait, the user did give a duration...") and a quoted rule appeared in the reply as normal text; the code already drops Gemini's separate thought parts, so a filter can't catch it.
+- **Alternatives:** filter the reply in code (no reliable marker to filter on); always use the stronger default model (more quota per call); a second LLM call to clean the reply (slower, another failure point).
+- **Why:**

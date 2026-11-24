@@ -1,11 +1,13 @@
 """Run a baseline on the eval set, save every outcome, print the summary.
 
 Run:  uv run python -m planner.evals.run --baseline parser_solver --split train
-      (--baseline direct, --split test|all, --limit 5, PLANNER_MODEL=... to switch)
+      (--baseline direct, --split test|all, --limit 5, --pause 6,
+       PLANNER_MODEL=... to switch model)
 """
 
 import argparse
 import json
+import time
 from collections import Counter
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
@@ -33,11 +35,17 @@ def run_eval(
     calendars: dict[str, list[Event]],
     progress: Callable[[str], None] = print,
     max_outages_in_a_row: int = 3,
+    pause_s: float = 0.0,
 ) -> list[Outcome]:
-    """Run every case; stop early if Gemini keeps failing (quota, outage)."""
+    """Run every case; stop early if Gemini keeps failing (quota, outage).
+
+    pause_s waits between cases, to stay under a requests-per-minute quota.
+    """
     outcomes: list[Outcome] = []
     outages = 0
-    for case in cases:
+    for index, case in enumerate(cases):
+        if index and pause_s:
+            time.sleep(pause_s)
         outcome = baseline.run(case, calendars[case.calendar])
         outcomes.append(outcome)
         verdict = "ok" if succeeded(outcome, case) else (outcome.error or "wrong")
@@ -140,6 +148,9 @@ def main() -> None:
     args.add_argument("--baseline", choices=["parser_solver", "direct"], required=True)
     args.add_argument("--split", choices=["train", "test", "all"], default="train")
     args.add_argument("--limit", type=int, default=None)
+    args.add_argument(
+        "--pause", type=float, default=0.0, help="seconds between cases (free quota)"
+    )
     options = args.parse_args()
 
     load_dotenv()
@@ -151,7 +162,7 @@ def main() -> None:
         if options.baseline == "parser_solver"
         else DirectBaseline(lm)
     )
-    outcomes = run_eval(baseline, cases, load_calendars())
+    outcomes = run_eval(baseline, cases, load_calendars(), pause_s=options.pause)
     if all(_unavailable(o) for o in outcomes):
         print("Every case was unavailable: nothing saved. Try later or another model.")
         return

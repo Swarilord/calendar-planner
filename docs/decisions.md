@@ -473,3 +473,28 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** pair gold and predicted tasks greedily by similarity (same deadline 2, same duration 1, shared name words up to 1); unpaired tasks are missing or extra.
 - **Alternatives:** pair by exact name (fails on "Analysis" vs "Analysis sheet"); pair by list order; optimal assignment (more code, same result on small task lists).
 - **Why:**
+
+### Both baselines judged against the gold request
+- **Chose:** each baseline's schedule is checked against the gold `PlanRequest`; success = the right "impossible", or a feasible plan with no violations.
+- **Alternatives:** check Baseline B against the parser's own request (always valid; hides every misunderstanding).
+- **Why:**
+
+### Baselines report their tasks; blocks renamed to gold names
+- **Chose:** both baselines return the tasks they understood; `rename_blocks` maps them to gold names via `match_tasks`, so the checker can judge them; unmatched tasks stay as invented.
+- **Alternatives:** require gold task names in the output (impossible without leaking the answer); match blocks to tasks by time.
+- **Why:**
+
+### Baseline A gets the same conventions in words
+- **Chose:** `planner/evals/prompts/direct_v1.md` states the same date/duration conventions as `parser_v1.md` plus the scheduling rules, so only "who schedules" differs.
+- **Alternatives:** a minimal prompt for A (an unfair comparison).
+- **Why:**
+
+### Outages are counted, not scored
+- **Chose:** an "unavailable" outcome is recorded but left out of every rate.
+- **Alternatives:** count it as a failure (mixes Google's load with model quality); retry until it works (runs could take hours).
+- **Why:**
+
+### Eval results saved as JSON files in the repo
+- **Chose:** `evals/results/<time>_<baseline>_<model>_<split>.json` with model, prompt version, summary and every outcome.
+- **Alternatives:** only print the summary; a database; an experiment-tracking service.
+- **Why:**

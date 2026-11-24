@@ -186,13 +186,7 @@ class PlannerTools:
     # --- formatting: UTC inside, Zurich time in everything the agent sees ---
 
     def summarize(self, events: Sequence[Event]) -> str:
-        """One line per event, e.g. 'Mon 23 Nov 09:00-11:00 Lecture'."""
-        if not events:
-            return "(no events)"
-        return "\n".join(
-            f"{self._local(e.start)}-{self._clock(e.start, e.end)} {e.title}"
-            for e in events[:MAX_EVENTS]
-        )
+        return summarize_events(events, self.tz)
 
     def _block(self, block: ScheduledBlock) -> Result:
         return {"task": block.task_name, **self._span(block.start, block.end)}
@@ -201,12 +195,30 @@ class PlannerTools:
         return {"start": self._local(start), "end": self._clock(start, end)}
 
     def _local(self, moment: datetime) -> str:
-        return f"{moment.astimezone(self.tz):%a %d %b %H:%M}"
+        return local_time(moment, self.tz)
 
     def _clock(self, start: datetime, end: datetime) -> str:
-        """End time alone if on the same local day, else with the date."""
-        same_day = start.astimezone(self.tz).date() == end.astimezone(self.tz).date()
-        return f"{end.astimezone(self.tz):%H:%M}" if same_day else self._local(end)
+        return local_end(start, end, self.tz)
+
+
+def summarize_events(events: Sequence[Event], tz: ZoneInfo) -> str:
+    """One line per event, e.g. 'Mon 23 Nov 09:00-11:00 Lecture'."""
+    if not events:
+        return "(no events)"
+    return "\n".join(
+        f"{local_time(e.start, tz)}-{local_end(e.start, e.end, tz)} {e.title}"
+        for e in events[:MAX_EVENTS]
+    )
+
+
+def local_time(moment: datetime, tz: ZoneInfo) -> str:
+    return f"{moment.astimezone(tz):%a %d %b %H:%M}"
+
+
+def local_end(start: datetime, end: datetime, tz: ZoneInfo) -> str:
+    """End time alone if on the same local day, else with the date."""
+    same_day = start.astimezone(tz).date() == end.astimezone(tz).date()
+    return f"{end.astimezone(tz):%H:%M}" if same_day else local_time(end, tz)
 
 
 def _parse_range(start: str, end: str) -> tuple[datetime, datetime]:

@@ -200,3 +200,24 @@ def test_runner_stops_after_three_outages_in_a_row() -> None:
     outcomes = run_eval(DownBaseline(), list(CASES.values()), CALENDARS, lines.append)
     assert len(outcomes) == 3
     assert lines[-1].startswith("stopped: 3 outages in a row")
+
+
+def test_a_is_judged_on_its_schedule_not_its_side_list() -> None:
+    # Like c05/c23 in the first live run: a messy task list (not a multiple of
+    # 15, an empty extra field, no deadline) used to make the whole answer
+    # "invalid", although the schedule itself was fine.
+    answer = direct_answer([("Analysis", z(24, 15), z(24, 19))])
+    answer["tasks"] = [{"name": "Analysis", "duration_min": 100, "max_block_min": ""}]
+    outcome = run_a(C01, answer)
+    assert outcome.error is None
+    assert outcome.schedule.blocks[0].task_name == "Analysis sheet"  # paired by name
+    assert succeeded(outcome, C01)  # 4h, before the deadline, no clash
+
+
+def test_a_wrong_schedule_still_fails_with_a_lenient_side_list() -> None:
+    # Leniency only covers the side list: 100 minutes of blocks is still short.
+    answer = direct_answer([("Analysis", z(24, 15), z(24, 16, 40))])
+    answer["tasks"] = [{"name": "Analysis", "duration_min": 100}]
+    outcome = run_a(C01, answer)
+    assert [v.kind for v in outcome.violations] == [ViolationKind.WRONG_TOTAL]
+    assert not succeeded(outcome, C01)

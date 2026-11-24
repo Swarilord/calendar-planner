@@ -10,18 +10,20 @@ the case's label.
 import time
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Protocol, TypedDict
 from zoneinfo import ZoneInfo
 
 import dspy
 from dspy.utils.exceptions import AdapterParseError, LMError
+from pydantic import BaseModel, ConfigDict
 
 from planner.agent.tools import TIMEZONE, summarize_events
 from planner.calendar.models import Event
 from planner.checker.check import Violation, check
 from planner.evals.dataset import EvalCase
-from planner.evals.score import ParseScore, match_tasks, score_parse
+from planner.evals.score import ParseScore, TaskLike, match_tasks, score_parse
 from planner.parser.parse import PROMPT_VERSION as PARSER_PROMPT_VERSION
 from planner.parser.parse import (
     Parser,
@@ -114,13 +116,28 @@ class ParserSolverBaseline:
         )
 
 
+class StatedTask(BaseModel):
+    """A task as Baseline A states it, used ONLY to pair its blocks with gold tasks.
+
+    Deliberately lenient (no 15-minute rule, unknown fields ignored, any field
+    may be missing): A is judged on its schedule and its feasibility answer,
+    not on how neatly it fills in this side list.
+    """
+
+    model_config = ConfigDict(extra="ignore")
+
+    name: str
+    duration_min: int | None = None
+    deadline: datetime | None = None
+
+
 class ScheduleDirectly(dspy.Signature):
     """Placeholder; the real instructions come from the prompt file."""
 
     text: str = dspy.InputField(desc="the user's request, in their own words")
     now: str = dspy.InputField(desc="current local date and time")
     calendar: str = dspy.InputField(desc="existing events, in local time")
-    tasks: list[Task] = dspy.OutputField(desc="the tasks you understood")
+    tasks: list[StatedTask] = dspy.OutputField(desc="the tasks you understood")
     feasible: bool = dspy.OutputField(desc="false if the request cannot be met")
     schedule: Schedule = dspy.OutputField(desc="your time blocks")
 
@@ -176,7 +193,7 @@ class DirectBaseline:
 
 
 def rename_blocks(
-    schedule: Schedule, gold: Sequence[Task], predicted: Sequence[Task]
+    schedule: Schedule, gold: Sequence[Task], predicted: Sequence[TaskLike]
 ) -> Schedule:
     """Give each block its gold task's name, so the checker can judge it.
 

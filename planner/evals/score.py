@@ -6,10 +6,24 @@ the parser may name them differently; names themselves are never scored.
 
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import StrEnum
 from itertools import product
+from typing import Protocol
 
 from planner.parser.schemas import PlanRequest, Task
+
+
+class TaskLike(Protocol):
+    """Anything with the three fields used to pair tasks: our strict Task, or
+    Baseline A's lenient task list. Read-only, so both fit."""
+
+    @property
+    def name(self) -> str: ...
+    @property
+    def duration_min(self) -> int | None: ...
+    @property
+    def deadline(self) -> datetime | None: ...
 
 
 class Mistake(StrEnum):
@@ -61,9 +75,9 @@ def score_parse(gold: PlanRequest, predicted: PlanRequest | None) -> ParseScore:
     return ParseScore(findings)
 
 
-def match_tasks(
-    gold: Sequence[Task], predicted: Sequence[Task]
-) -> list[tuple[Task | None, Task | None]]:
+def match_tasks[G: TaskLike, P: TaskLike](
+    gold: Sequence[G], predicted: Sequence[P]
+) -> list[tuple[G | None, P | None]]:
     """Pair each gold task with its most similar predicted task (greedy).
 
     Pairs with nothing in common are not made: those tasks count as missing
@@ -76,7 +90,7 @@ def match_tasks(
         ),
         reverse=True,
     )
-    pairs: list[tuple[Task | None, Task | None]] = []
+    pairs: list[tuple[G | None, P | None]] = []
     used_gold: set[int] = set()
     used_pred: set[int] = set()
     for similarity, gi, pi in candidates:
@@ -89,7 +103,7 @@ def match_tasks(
     return pairs
 
 
-def _similarity(gold: Task, predicted: Task) -> float:
+def _similarity(gold: TaskLike, predicted: TaskLike) -> float:
     words_gold = set(gold.name.lower().split())
     words_pred = set(predicted.name.lower().split())
     shared = len(words_gold & words_pred) / len(words_gold | words_pred)

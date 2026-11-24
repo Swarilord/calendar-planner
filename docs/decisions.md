@@ -525,3 +525,8 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** GEPA's parser and reflection LMs get 8 retries (DSPy waits before each), one thread; the reflection LM uses temperature 1.0.
 - **Alternatives:** the app's 1 retry (rate limits would turn cases into failures and mislead GEPA); parallel threads (faster, hits the per-minute quota).
 - **Why:**
+
+### Baseline A judged on its schedule, not its task list
+- **Chose:** A's task list is a lenient `StatedTask` (name, optional duration and deadline, extra fields ignored), used only to pair its blocks with gold tasks; `match_tasks` accepts anything with those three fields (`TaskLike` protocol). Found in the first live run: c23 failed on an empty `max_block_min` in the side list, though the schedule was never looked at.
+- **Alternatives:** keep the strict `Task` schema for A's list (A fails for things that don't affect the user's plan); drop the list and pair blocks by time.
+- **Why:**

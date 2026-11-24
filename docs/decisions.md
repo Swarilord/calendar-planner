@@ -540,3 +540,8 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** the agent prompt says a new task or request after a draft is a new plan (`propose_plan`). Found twice in live runs.
 - **Alternatives:** let `revise_plan` merge everything (mixes old tasks into new requests); remove `revise_plan`.
 - **Why:**
+
+### Gemini free tier only, no billing
+- **Chose:** the project runs on the Gemini API free tier; quota limits are handled by `--pause`, the 3-outages stop, `PLANNER_MODEL` (a lighter model with its own quota) and GEPA's budget.
+- **Alternatives:** a paid key (no per-minute stalls, faster eval and GEPA runs, costs money); a different free provider for evals (results would no longer be about Gemini).
+- **Why:**

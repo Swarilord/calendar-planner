@@ -32,14 +32,25 @@ def run_eval(
     cases: Sequence[EvalCase],
     calendars: dict[str, list[Event]],
     progress: Callable[[str], None] = print,
+    max_outages_in_a_row: int = 3,
 ) -> list[Outcome]:
-    outcomes = []
+    """Run every case; stop early if Gemini keeps failing (quota, outage)."""
+    outcomes: list[Outcome] = []
+    outages = 0
     for case in cases:
         outcome = baseline.run(case, calendars[case.calendar])
         outcomes.append(outcome)
         verdict = "ok" if succeeded(outcome, case) else (outcome.error or "wrong")
         progress(f"{case.id} {outcome.seconds:5.1f}s {verdict[:70]}")
+        outages = outages + 1 if _unavailable(outcome) else 0
+        if outages == max_outages_in_a_row:
+            progress(f"stopped: {outages} outages in a row (quota or overload?)")
+            break
     return outcomes
+
+
+def _unavailable(outcome: Outcome) -> bool:
+    return (outcome.error or "").startswith("unavailable")
 
 
 def succeeded(outcome: Outcome, case: EvalCase) -> bool:
@@ -54,7 +65,7 @@ def succeeded(outcome: Outcome, case: EvalCase) -> bool:
 def summarize(outcomes: Sequence[Outcome], cases: Sequence[EvalCase]) -> dict[str, Any]:
     by_id = {c.id: c for c in cases}
     # An outage says nothing about quality: count it, but leave it out of rates.
-    answered = [o for o in outcomes if not (o.error or "").startswith("unavailable")]
+    answered = [o for o in outcomes if not _unavailable(o)]
     parsed = [o.parse for o in answered if o.parse is not None]
     n = len(answered)
     return {
@@ -141,6 +152,9 @@ def main() -> None:
         else DirectBaseline(lm)
     )
     outcomes = run_eval(baseline, cases, load_calendars())
+    if all(_unavailable(o) for o in outcomes):
+        print("Every case was unavailable: nothing saved. Try later or another model.")
+        return
     summary = summarize(outcomes, cases)
     path = save(outcomes, summary, options.split)
     print(json.dumps(summary, indent=1))

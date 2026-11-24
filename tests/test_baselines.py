@@ -180,3 +180,23 @@ def test_outages_are_left_out_of_the_rates() -> None:
     summary = summarize(outcomes, [C01, C44])
     assert summary["unavailable"] == 1
     assert summary["success_rate"] == 1.0  # 1 of 1 answered case
+
+
+def test_runner_stops_after_three_outages_in_a_row() -> None:
+    class DownBaseline:
+        name = "down"
+
+        def run(self, case: EvalCase, events: Any) -> Outcome:
+            return Outcome(
+                case_id=case.id,
+                baseline="down",
+                model="m",
+                prompt_version="v",
+                seconds=0.0,
+                error="unavailable: LMRateLimitError",
+            )
+
+    lines: list[str] = []
+    outcomes = run_eval(DownBaseline(), list(CASES.values()), CALENDARS, lines.append)
+    assert len(outcomes) == 3
+    assert lines[-1].startswith("stopped: 3 outages in a row")

@@ -1,0 +1,679 @@
+{
+ "baseline": "direct",
+ "model": "gemini/gemini-3.5-flash-lite",
+ "prompt_version": "direct_v1",
+ "split": "train",
+ "summary": {
+  "cases": 35,
+  "unavailable": 3,
+  "success_rate": 0.812,
+  "feasibility_accuracy": 0.938,
+  "invalid_output_rate": 0.062,
+  "parse_exact_rate": null,
+  "parse_mistakes": {},
+  "violations": {
+   "in_blocked_window": 1,
+   "outside_day_hours": 1,
+   "unknown_task": 1,
+   "wrong_total": 1
+  },
+  "mean_seconds": 2.674
+ },
+ "outcomes": [
+  {
+   "case_id": "c01",
+   "seconds": 4.14,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Analysis sheet",
+      "start": "2026-11-24T09:00:00Z",
+      "end": "2026-11-24T12:00:00Z"
+     },
+     {
+      "task_name": "Analysis sheet",
+      "start": "2026-11-24T14:00:00Z",
+      "end": "2026-11-24T15:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c03",
+   "seconds": 3.72,
+   "claimed_feasible": null,
+   "error": "invalid: blocks.1: Value error, end must be after start",
+   "schedule": null,
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c04",
+   "seconds": 7.08,
+   "claimed_feasible": null,
+   "error": "unavailable: LMServerError",
+   "schedule": null,
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c05",
+   "seconds": 1.24,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Physics lab report",
+      "start": "2026-11-24T09:30:00Z",
+      "end": "2026-11-24T11:15:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c07",
+   "seconds": 0.92,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "German vocab",
+      "start": "2026-11-26T07:00:00Z",
+      "end": "2026-11-26T10:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c09",
+   "seconds": 6.44,
+   "claimed_feasible": null,
+   "error": "unavailable: LMServerError",
+   "schedule": null,
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c10",
+   "seconds": 1.38,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Algorithms chapter 5",
+      "start": "2026-11-25T13:00:00Z",
+      "end": "2026-11-25T15:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c11",
+   "seconds": 3.56,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Slides",
+      "start": "2026-11-24T09:00:00Z",
+      "end": "2026-11-24T12:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c12",
+   "seconds": 3.85,
+   "claimed_feasible": null,
+   "error": "unavailable: LMServerError",
+   "schedule": null,
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c14",
+   "seconds": 5.98,
+   "claimed_feasible": null,
+   "error": "invalid: Failed to parse XML: Missing closing tag for start before container end\n\nAdapter XMLAdapter failed to parse the LM response. \n\nLM Response: <tasks>\n<item>\n<name>\nCoding project\n</name>\n<duration_min>\n300\n</duration_min>\n<deadline>\n2026-11-27T12:00:00+01:00\n</deadline>\n</item>\n</tasks>\n\n<feasible>\ntrue\n</feasible>\n\n<schedule>\n<blocks>\n<item>\n<task_name>\nCoding project\n</task_name>\n<start>\n2026-11-24T10:00:00+01:00\n</start>\n<end>\n2026-11-24T13:15:00+01:00\n</end>\n</item>\n<item>\n<task_name>\nCoding project\n</task_name>\n<start>\n2026-11-24T15:00:00+01:00\n</task_name>\n<end>\n2026-11-24T16:45:00+01:00\n</end>\n</item>\n<item>\n<task_name>\nCoding project\n</task_name>\n<start>\n2026-11-25T07:00:00+01:00\n</start>\n<end>\n2026-11-25T10:15:00+01:00\n</end>\n</item>\n</blocks>\n</schedule> \n\nExpected to find output fields in the LM response: [tasks, feasible, schedule] \n\n",
+   "schedule": null,
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c15",
+   "seconds": 0.93,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Lab report",
+      "start": "2026-11-24T14:00:00Z",
+      "end": "2026-11-24T17:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c16",
+   "seconds": 1.12,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Group project",
+      "start": "2026-11-24T14:00:00Z",
+      "end": "2026-11-24T18:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c18",
+   "seconds": 0.75,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "History reading",
+      "start": "2026-11-24T09:00:00Z",
+      "end": "2026-11-24T11:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c19",
+   "seconds": 1.02,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Exam revision",
+      "start": "2026-11-24T14:30:00Z",
+      "end": "2026-11-24T18:30:00Z"
+     },
+     {
+      "task_name": "Exam revision",
+      "start": "2026-11-25T12:00:00Z",
+      "end": "2026-11-25T16:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c22",
+   "seconds": 1.34,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Essay",
+      "start": "2026-11-28T08:00:00Z",
+      "end": "2026-11-28T13:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c23",
+   "seconds": 1.76,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Algebra",
+      "start": "2026-11-23T09:00:00Z",
+      "end": "2026-11-23T11:00:00Z"
+     },
+     {
+      "task_name": "Analysis",
+      "start": "2026-11-23T12:00:00Z",
+      "end": "2026-11-23T16:00:00Z"
+     },
+     {
+      "task_name": "Physics",
+      "start": "2026-11-24T08:00:00Z",
+      "end": "2026-11-24T11:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c24",
+   "seconds": 1.03,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Quiz preparation",
+      "start": "2026-11-24T14:30:00Z",
+      "end": "2026-11-24T16:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c25",
+   "seconds": 2.21,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Spanish homework",
+      "start": "2026-11-24T09:00:00Z",
+      "end": "2026-11-24T09:45:00Z"
+     },
+     {
+      "task_name": "Book summary",
+      "start": "2026-11-24T10:00:00Z",
+      "end": "2026-11-24T12:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c26",
+   "seconds": 4.0,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Reply to emails",
+      "start": "2026-11-24T09:00:00Z",
+      "end": "2026-11-24T09:15:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c27",
+   "seconds": 2.74,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Revision Mon",
+      "start": "2026-11-30T06:00:00Z",
+      "end": "2026-11-30T07:00:00Z"
+     },
+     {
+      "task_name": "Revision Tue",
+      "start": "2026-12-01T06:00:00Z",
+      "end": "2026-12-01T07:00:00Z"
+     },
+     {
+      "task_name": "Revision Wed",
+      "start": "2026-12-02T06:00:00Z",
+      "end": "2026-12-02T07:00:00Z"
+     },
+     {
+      "task_name": "Revision Thu",
+      "start": "2026-12-03T06:00:00Z",
+      "end": "2026-12-03T07:00:00Z"
+     },
+     {
+      "task_name": "Revision Fri",
+      "start": "2026-12-04T06:00:00Z",
+      "end": "2026-12-04T07:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c30",
+   "seconds": 3.08,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Revision",
+      "start": "2026-03-29T07:00:00Z",
+      "end": "2026-03-29T09:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c31",
+   "seconds": 1.24,
+   "claimed_feasible": false,
+   "error": null,
+   "schedule": null,
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c33",
+   "seconds": 0.73,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Exam simulation",
+      "start": "2026-11-24T14:00:00Z",
+      "end": "2026-11-24T19:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c34",
+   "seconds": 7.29,
+   "claimed_feasible": false,
+   "error": null,
+   "schedule": null,
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c35",
+   "seconds": 1.95,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Analysis sheet",
+      "start": "2026-11-24T10:00:00Z",
+      "end": "2026-11-24T12:00:00Z"
+     },
+     {
+      "task_name": "Analysis sheet",
+      "start": "2026-11-24T14:00:00Z",
+      "end": "2026-11-24T17:00:00Z"
+     }
+    ]
+   },
+   "violations": [
+    {
+     "kind": "in_blocked_window",
+     "task_name": "Analysis sheet",
+     "message": "Block for 'Analysis sheet' (Tue 24 Nov 10:00-12:00 UTC) falls in a time I asked to keep free."
+    }
+   ],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c37",
+   "seconds": 1.02,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Group meeting prep",
+      "start": "2026-11-25T12:00:00Z",
+      "end": "2026-11-25T13:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c38",
+   "seconds": 5.97,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Oral exam preparation",
+      "start": "2026-11-26T07:00:00Z",
+      "end": "2026-11-26T12:00:00Z"
+     },
+     {
+      "task_name": "Oral exam preparation",
+      "start": "2026-11-26T14:00:00Z",
+      "end": "2026-11-26T16:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c39",
+   "seconds": 1.24,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Math sheet",
+      "start": "2026-11-24T10:00:00Z",
+      "end": "2026-11-24T12:00:00Z"
+     },
+     {
+      "task_name": "Math sheet",
+      "start": "2026-11-24T14:00:00Z",
+      "end": "2026-11-24T15:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c40",
+   "seconds": 1.61,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Tax documents",
+      "start": "2026-11-24T14:00:00Z",
+      "end": "2026-11-24T15:30:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c42",
+   "seconds": 2.54,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Quiz cramming",
+      "start": "2026-11-26T05:00:00Z",
+      "end": "2026-11-26T08:00:00Z"
+     }
+    ]
+   },
+   "violations": [
+    {
+     "kind": "outside_day_hours",
+     "task_name": "Quiz cramming",
+     "message": "Block for 'Quiz cramming' (Thu 26 Nov 05:00-08:00 UTC) is outside the allowed hours of the day."
+    }
+   ],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c43",
+   "seconds": 4.11,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Cover letter",
+      "start": "2026-11-24T09:00:00Z",
+      "end": "2026-11-24T11:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c45",
+   "seconds": 3.16,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Japanese Tue",
+      "start": "2026-11-24T09:00:00Z",
+      "end": "2026-11-24T09:30:00Z"
+     },
+     {
+      "task_name": "Japanese Wed",
+      "start": "2026-11-25T06:00:00Z",
+      "end": "2026-11-25T06:30:00Z"
+     },
+     {
+      "task_name": "Japanese Thu",
+      "start": "2026-11-26T06:00:00Z",
+      "end": "2026-11-26T06:30:00Z"
+     },
+     {
+      "task_name": "Japanese Fri",
+      "start": "2026-11-27T06:00:00Z",
+      "end": "2026-11-27T06:30:00Z"
+     },
+     {
+      "task_name": "Japanese Sat",
+      "start": "2026-11-28T06:00:00Z",
+      "end": "2026-11-28T06:30:00Z"
+     },
+     {
+      "task_name": "Japanese Sun",
+      "start": "2026-11-29T06:00:00Z",
+      "end": "2026-11-29T06:30:00Z"
+     },
+     {
+      "task_name": "Study Japanese Mon",
+      "start": "2026-11-30T06:00:00Z",
+      "end": "2026-11-30T06:30:00Z"
+     }
+    ]
+   },
+   "violations": [
+    {
+     "kind": "unknown_task",
+     "task_name": "Study Japanese Mon",
+     "message": "Block for 'Study Japanese Mon' (Mon 30 Nov 06:00-06:30 UTC) is not in the request."
+    }
+   ],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c46",
+   "seconds": 1.45,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Lecture notes revision",
+      "start": "2026-11-25T08:30:00Z",
+      "end": "2026-11-25T09:15:00Z"
+     },
+     {
+      "task_name": "Analysis sheet",
+      "start": "2026-11-24T09:30:00Z",
+      "end": "2026-11-24T12:00:00Z"
+     },
+     {
+      "task_name": "Analysis sheet",
+      "start": "2026-11-25T11:00:00Z",
+      "end": "2026-11-25T12:30:00Z"
+     }
+    ]
+   },
+   "violations": [
+    {
+     "kind": "wrong_total",
+     "task_name": "Analysis sheet",
+     "message": "'Analysis sheet' has 240 of 210 minutes scheduled."
+    }
+   ],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c49",
+   "seconds": 1.65,
+   "claimed_feasible": true,
+   "error": null,
+   "schedule": {
+    "blocks": [
+     {
+      "task_name": "Analysis",
+      "start": "2026-11-26T17:00:00Z",
+      "end": "2026-11-26T21:00:00Z"
+     }
+    ]
+   },
+   "violations": [],
+   "parse_findings": null
+  },
+  {
+   "case_id": "c50",
+   "seconds": 1.34,
+   "claimed_feasible": false,
+   "error": null,
+   "schedule": null,
+   "violations": [],
+   "parse_findings": null
+  }
+ ]
+}

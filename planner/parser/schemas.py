@@ -129,3 +129,19 @@ class PlanRequest(Schema):
         ):
             raise ValueError("lunch_end must be after lunch_start")
         return self
+
+
+def cover_deadlines(request: PlanRequest) -> PlanRequest:
+    """Extend horizon_end to the latest deadline if it ends earlier.
+
+    The deadline is what the user said; the horizon is the parser's guess at
+    the planning period. A horizon that ends first would silently move every
+    later deadline forward (and can turn a feasible request into "impossible"),
+    so the user's words win. A too-long horizon is harmless: each task is still
+    bounded by its own deadline.
+    """
+    latest = max(task.deadline for task in request.tasks)
+    if request.horizon_end >= latest:
+        return request
+    # Frozen models can't be changed; model_copy makes a changed copy.
+    return request.model_copy(update={"horizon_end": latest})

@@ -55,6 +55,13 @@ def test_valid_answer_becomes_plan_request() -> None:
     assert task.deadline == datetime(2026, 11, 26, 22, 59, tzinfo=UTC)
 
 
+def test_parser_repairs_a_horizon_that_ends_before_a_deadline() -> None:
+    answer = reply()
+    answer["plan_request"]["horizon_end"] = "2026-11-26T00:00:00+01:00"
+    result, _ = parse_with(answer)
+    assert result.request.horizon_end == result.request.tasks[0].deadline
+
+
 def test_result_records_prompt_version_and_model() -> None:
     result, _ = parse_with(reply())
     assert result.prompt_version == PROMPT_VERSION

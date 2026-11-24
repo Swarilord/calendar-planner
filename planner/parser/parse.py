@@ -16,7 +16,7 @@ import dspy
 from dspy.utils.exceptions import AdapterParseError, LMError
 from pydantic import ValidationError
 
-from planner.parser.schemas import PlanRequest
+from planner.parser.schemas import PlanRequest, cover_deadlines
 
 PROMPT_VERSION = "v1"
 PROMPTS_DIR = Path(__file__).parent / "prompts"
@@ -79,6 +79,8 @@ class Parser:
         return self._result(prediction.plan_request, [])
 
     def _result(self, request: PlanRequest | None, errors: list[str]) -> ParseResult:
+        if request is not None:
+            request = cover_deadlines(request)  # repair a too-short horizon
         return ParseResult(request, errors, self.prompt_version, str(self.lm.model))
 
 

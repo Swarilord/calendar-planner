@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from pydantic import ValidationError
 
-from planner.parser.schemas import PlanRequest, Task, Window
+from planner.parser.schemas import PlanRequest, Task, Window, cover_deadlines
 
 ZURICH = ZoneInfo("Europe/Zurich")
 
@@ -180,3 +180,15 @@ def test_default_limits_are_seven_to_midnight_and_twelve_hours() -> None:
     request = PlanRequest.model_validate(fields)  # day_start not given
     assert request.day_start == time(7) and request.day_end is None
     assert request.max_work_min_per_day == 12 * 60
+
+
+def test_horizon_is_extended_to_the_latest_deadline() -> None:
+    # "this week" read as ending Saturday, but a task is due Sunday 20:00.
+    sunday = {"name": "Physics", "duration_min": 60, "deadline": zurich(29, 20)}
+    short = example_request(horizon_end=zurich(29, 0), tasks=[sunday])
+    assert cover_deadlines(short).horizon_end == zurich(29, 20)
+
+
+def test_horizon_covering_all_deadlines_is_unchanged() -> None:
+    request = example_request()  # ends Mon 30 Nov 00:00, deadlines before
+    assert cover_deadlines(request) is request

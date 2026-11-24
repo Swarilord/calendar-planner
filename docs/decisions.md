@@ -565,3 +565,8 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** report every complete run, including a repeated Baseline A run (shows the run-to-run noise); drop a v3 run that stopped after 5 cases on rate limits; results table and error analysis in `evals/README.md`.
 - **Alternatives:** report only the best run per variant (hides noise); average repeated runs (needs equal repeats for every variant); keep the aborted run (5 cases say little).
 - **Why:**
+
+### Too-short horizon repaired after parsing, not rejected
+- **Chose:** `cover_deadlines` extends `horizon_end` to the latest deadline when the parser's horizon ends first; the parser applies it to every valid answer. The deadline is the user's words, the horizon the parser's guess. GEPA still scores the raw parse (it optimises the prompt, not the repair).
+- **Alternatives:** a validator that rejects the request (the agent would ask about something the user never said); derive horizon_end entirely in code (drops periods the user names, e.g. "only this week"); leave it (a short horizon silently moves deadlines forward).
+- **Why:**

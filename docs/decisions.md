@@ -294,3 +294,40 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `Conflict(rule, task_name, description)` with times shown in Zurich; the agent turns them into a sentence.
 - **Alternatives:** one finished sentence from the solver; only the rule names.
 - **Why:**
+
+## Phase 4: parser and agent tools
+
+### DSPy 3.5.0, pinned exactly
+- **Chose:** `dspy==3.5.0` (current release; the docs I checked describe it; native Gemini without LiteLLM).
+- **Alternatives:** 3.4.1 (older, more tutorials online, different default prompt format); a hand-written prompt with the plain Gemini SDK.
+- **Why:**
+
+### No hidden retry in the parser
+- **Chose:** `XMLAdapter(use_json_adapter_fallback=False)`: one `parse()` is exactly one LM call.
+- **Alternatives:** keep DSPy's default, which silently asks again in JSON format when the first answer is invalid.
+- **Why:**
+
+### Parser returns errors instead of raising
+- **Chose:** `ParseResult(request | None, errors, prompt_version, model)`, with Pydantic's exact reasons (e.g. `tasks.0.duration_min: must be a multiple of 15 minutes`).
+- **Alternatives:** let the exception propagate; return only "failed".
+- **Why:**
+
+### Instructions in a versioned text file
+- **Chose:** `planner/parser/prompts/parser_v1.md`, loaded with `with_instructions`; a test checks it states the same granularity as the schema.
+- **Alternatives:** the signature docstring in code; a DSPy JSON state file from the start.
+- **Why:**
+
+### Rules restated in words for the LLM
+- **Chose:** the instruction spells out offsets, multiples of 15 (rounded up), local day hours, relative dates, recurring tasks, default horizon.
+- **Alternatives:** rely on the schema's field names only and let validation reject mistakes.
+- **Why:**
+
+### Tests use DummyLM; live check is a manual script
+- **Chose:** `dspy.utils.DummyLM` in tests; `experiments/parse_live.py` for a real Gemini call with my key.
+- **Alternatives:** call Gemini in tests (needs a key in CI, costs money, not deterministic); mock DSPy internals.
+- **Why:**
+
+### mypy overrides for DSPy
+- **Chose:** `ignore_missing_imports` for `dspy.*` and `disallow_subclassing_any = false` only for `planner.parser.parse`.
+- **Alternatives:** write stub files for DSPy; turn off strict mode; `# type: ignore` on each line.
+- **Why:**

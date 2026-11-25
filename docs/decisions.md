@@ -582,3 +582,8 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `google-api-python-client` 2.202.0 and `google-auth-oauthlib` 1.5.0 (as the brief says), plus `google-api-python-client-stubs` 1.40.0 for mypy; desktop OAuth client, files `credentials.json` and `token.json` in the repo root, both git-ignored.
 - **Alternatives:** raw HTTP calls with `httpx` (fewer dependencies, but we would write the auth refresh and paging ourselves); a web OAuth client now (needed only once there is a web backend, Phase 8).
 - **Why:**
+
+### Idempotent apply: blocks recognised by content, re-checked before writing
+- **Chose:** `apply_plan` treats a block as already written if an app-created event has the same title, start and end; it creates only the missing blocks. Before writing it reads the calendar again; if any missing block now clashes with another event, it writes nothing and returns the clashes.
+- **Alternatives:** match by `plan_id` + block number (plan ids restart per session, so an old "plan-1" could be mistaken for a new one); a per-block id stored as an extra tag (more tags to keep in sync); client-chosen Google event ids (Google-only, FakeCalendar would differ); write what fits and skip clashing blocks (a half-applied plan the user didn't confirm).
+- **Why:**

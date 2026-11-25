@@ -570,3 +570,15 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `cover_deadlines` extends `horizon_end` to the latest deadline when the parser's horizon ends first; the parser applies it to every valid answer. The deadline is the user's words, the horizon the parser's guess. GEPA still scores the raw parse (it optimises the prompt, not the repair).
 - **Alternatives:** a validator that rejects the request (the agent would ask about something the user never said); derive horizon_end entirely in code (drops periods the user names, e.g. "only this week"); leave it (a short horizon silently moves deadlines forward).
 - **Why:**
+
+## Phase 7: real Google Calendar
+
+### Scopes: a separate app calendar for writing, read-only for the rest
+- **Chose:** `calendar.app.created` (the app makes its own "Study plan" calendar and may only write there) plus `calendar.events.readonly` (read events on all calendars, including subscribed ones such as a lecture timetable). Tags (`created_by=planner`, `plan_id`) are still checked before any change.
+- **Alternatives:** `calendar.events.owned` (one scope, writes to the primary calendar, misses subscribed calendars); `calendar.events` (read and write everything; widest access); only freebusy scopes for reading (no event titles, so "after my lecture" can't be understood).
+- **Why:**
+
+### Google client libraries
+- **Chose:** `google-api-python-client` 2.202.0 and `google-auth-oauthlib` 1.5.0 (as the brief says), plus `google-api-python-client-stubs` 1.40.0 for mypy; desktop OAuth client, files `credentials.json` and `token.json` in the repo root, both git-ignored.
+- **Alternatives:** raw HTTP calls with `httpx` (fewer dependencies, but we would write the auth refresh and paging ourselves); a web OAuth client now (needed only once there is a web backend, Phase 8).
+- **Why:**

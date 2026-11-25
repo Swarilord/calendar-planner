@@ -206,3 +206,50 @@
   error analysis, maybe a prompt rule.
 - Repo visibility: keep `CLAUDE.md` and co-author lines public?
 - Blank Why lines in `docs/decisions.md` (Phases 0-6).
+
+## 2026-11-25 — Phases 4-9 done: project complete (except a live deployment)
+
+**Done**
+- Phase 4 finished: default limits (07:00-midnight, 12 h/day); agent prompt rules
+  found in live chats (`propose_plan` for new requests, never judge feasibility
+  itself, never write reasoning into the reply); parser outages logged with the
+  reason. Host-call questions answered and corrected.
+- Phase 5: train and test runs. Test split: Baseline A 73% / 67% (two runs),
+  Baseline B (parser + solver) 93% with v1. Error analysis and results table in
+  `evals/README.md`.
+- Phase 6: GEPA produced `parser_v2` (kept unchanged); `parser_v3` = v2 + three
+  hand fixes from reading it (weekend starts Saturday, XML not JSON, local
+  times). v3: 100% test success, parse exact 33% -> 47%. Too-short horizons are
+  now extended to the latest deadline after parsing.
+- Phase 7: real Google Calendar. Scopes `calendar.app.created`,
+  `calendar.events.readonly`, `calendar.calendarlist.readonly` (the third found
+  by checking the API reference). OAuth module (silent refresh, clear "log in
+  again", token mode 600), `GoogleCalendar` backend (writes only to its own
+  "Study plan" calendar, tag check), idempotent `apply_plan` with a re-check for
+  new clashes. Live check passed (apply twice -> one event).
+- Phase 8: FastAPI backend (chat, plan preview, Confirm, Reject; Confirm never
+  goes through the agent) and a React + TypeScript week view (own grid, Zurich
+  time via Intl, tested incl. daylight saving). Ran end to end in the browser.
+- Phase 9: FastAPI serves the built frontend; `/api/health`; multi-stage
+  Dockerfile (non-root, no secrets); CI builds and smoke-tests the image;
+  README with architecture, results, running instructions and limitations.
+
+**Problems found and fixed**
+- Live chat: agent did hour arithmetic itself ("24 hours total") and leaked its
+  reasoning into the reply (flash-lite) -> prompt rules.
+- GEPA's v2 had a wrong weekend rule and said "JSON" -> hand-fixed in v3.
+- `os.open(..., 0o600)` only sets the mode on new files -> `fchmod` on every save.
+- Scope gap: listing calendars needs `calendar.calendarlist.readonly`.
+
+**Next**
+- Push to GitHub (19+ commits) and check that all three CI jobs pass,
+  especially the new `docker` job (first real Docker build).
+- Record the demo GIF (`docs/demo.gif`, steps in the README).
+- Fill in the blank **Why** lines in `docs/decisions.md` before the host calls.
+- Phase 8 and 9 host-call questions: Phase 8 answered and corrected; Phase 9
+  questions still to answer.
+
+**Open questions**
+- D: repo visibility (CLAUDE.md, co-author lines) before making it public.
+- Deployment: stays undeployed unless billing is enabled (to verify in Google's
+  docs: whether Cloud Run needs billing within the free tier).

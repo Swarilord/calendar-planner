@@ -11,13 +11,11 @@ changes go into `cases_v2.jsonl`.
 ## How the gold answers were made
 
 Drafted in one batch and reviewed case by case (2026-11-24), most of them
-twice. They follow the conventions below,
-which match the parser prompt `parser_v1.md`. Automatic checks
-(`tests/test_eval_data.py`): every gold answer validates as a `PlanRequest`,
-the horizon starts at `now` and covers every deadline, and the CP-SAT solver
-agrees with `expect_feasible` (a feasible gold plan must also pass the checker).
-
-Judgement calls worth a second opinion: c02, c07, c08, c09, c33, c45, c49.
+twice. They follow the conventions below, which match the parser prompt
+`parser_v1.md`. `tests/test_eval_data.py` checks that every gold answer
+validates as a `PlanRequest`, that the horizon starts at `now` and covers every
+deadline, and that the CP-SAT solver agrees with `expect_feasible` (a feasible
+gold plan must also pass the checker).
 
 ## Conventions
 
@@ -53,21 +51,21 @@ Wishes
 
 | Version | Made by |
 |---|---|
-| `parser_v1.md` | written by hand (Phase 4) |
+| `parser_v1.md` | written by hand |
 | `parser_v2.md` | GEPA, unchanged (budget 150, `gemini-3.5-flash-lite`, train split only) |
-| `parser_v3.md` | GEPA + hand fix: v2 with three review fixes, made before any test-split run |
+| `parser_v3.md` | v2 with three fixes from reviewing it, made before any test-split run |
 
-The hand fixes in v3, found by reading v2 (not by looking at test results):
-"this weekend" starts on Saturday, not Friday; the parser answers in XML, not
-JSON; times are written in local time with offset, never "converted to UTC".
+The fixes in v3 came from reading v2, not from test results: "this weekend"
+starts on Saturday, not Friday; the parser answers in XML, not JSON; and times
+are written in local time with an offset, never "converted to UTC".
 
 ## Results (24 Nov 2026, `gemini-3.5-flash-lite`, free tier)
 
-Success = the right "impossible" answer, or a plan with no rule broken when
-checked against the gold request. Outages (Gemini's 503/429) are counted
-separately and left out of the rates.
+A case succeeds if the answer is correctly "impossible", or if the plan
+breaks no rule when checked against the gold request. Outages (Gemini's 503 and
+429 errors) are counted separately and left out of the rates.
 
-**Test split** (15 held-out cases, never seen by GEPA):
+Test split (15 held-out cases, never seen by GEPA):
 
 | Baseline | Prompt | Answered | Success | Feasible/infeasible right | Parse exact | Invalid output |
 |---|---|---|---|---|---|---|
@@ -75,34 +73,34 @@ separately and left out of the rates.
 | A: Gemini plans directly (run 2) | `direct_v1` | 15/15 | 10/15 (67%) | 100% | – | 0 |
 | B: parser + solver | `parser_v1` | 15/15 | 14/15 (93%) | 93% | 33% | 0 |
 | B: parser + solver | `parser_v2` (GEPA) | 13/15 | 11/13 (85%) | 92% | 38% | 1 |
-| B: parser + solver | `parser_v3` (GEPA + hand fix) | 15/15 | **15/15 (100%)** | 100% | 47% | 0 |
+| B: parser + solver | `parser_v3` (GEPA + hand fix) | 15/15 | 15/15 (100%) | 100% | 47% | 0 |
 
-**Train split** (35 cases): B with `parser_v1` 29/32 (91%), A 26/32 (81%), 3
-outages each.
+On the train split (35 cases), B with `parser_v1` got 29/32 (91%) and A 26/32
+(81%), with 3 outages each.
 
 A second `parser_v3` test run stopped after 5 cases on rate limits (429) and
 is not reported.
 
 ### Error analysis
 
-- **A fails on arithmetic and rules, B on wording.** Test-split A failures are
+- A fails on arithmetic and rules, B on wording. On the test split, A's failures are
   wrong totals (c02, c13, c17, c41), blocks outside the horizon or before the
   earliest start (c08, c20) and a too-short block (c02). B never broke a rule
   the parser had read correctly: every B failure traces back to a parse
   mistake.
-- **Same model, same prompt, different result.** A's two runs differ by one
+- The same model with the same prompt gives different results: A's two runs differ by one
   case (73% vs 67%), so with 15 cases a difference of one or two cases is
   noise. B beats A in every run on both splits, by 2 to 5 cases.
-- **c06 ("20 hours tomorrow, free from 8 to 22") is the case v3 fixed.** v1
+- c06 ("20 hours tomorrow, free from 8 to 22") is the case v3 fixed. v1
   missed "tomorrow" as the earliest start, so the solver spread the work over
   today and tomorrow and said "feasible". v3 read the start correctly; the
   solver then proved it impossible.
-- **Parse exact rose from 33% (v1) to 47% (v3)**, mostly fewer horizon
+- Exact parses rose from 33% (v1) to 47% (v3), mostly through fewer horizon
   mistakes ("this week" ends Sunday, not Saturday). Horizon mistakes rarely
   change the plan, so they cost little success.
-- **GEPA's raw v2 was worse than v1 on success** (85% vs 93%): one invalid
+- GEPA's unedited v2 did worse than v1 (85% vs 93%): one invalid
   output (c41) and a missed earliest start (c20). The hand fixes in v3 (XML
   not JSON, local times) remove the likely cause of the invalid output.
-- **Still wrong in every version:** the daily cap in c06 (the parser turns
+- Still wrong in every version: the daily cap in c06 (the parser turns
   "fit 20 hours" into a 20 h cap), max_block_min set without being asked
   (c32), and deadlines on DST days off by one hour (c28).

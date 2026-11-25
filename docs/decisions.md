@@ -619,3 +619,10 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** a hand-written Vite project in `web/` (React 19.3.1, Vite 8.3.8, TypeScript 7.0.2, Vitest 5.1.1, exact versions + `package-lock.json`). Time-to-grid logic (Zurich time via `Intl`, Monday of the week, position in 07:00-24:00) lives in `week.ts` and is unit-tested, including daylight saving; components only render. `api.ts` mirrors the Pydantic models as TypeScript types. Dev: Vite proxies `/api` to FastAPI (no CORS). CI gets a `web` job (typecheck, tests, build).
 - **Alternatives:** `npm create vite` template (more boilerplate files to explain); component tests with a browser DOM (jsdom/Testing Library: more setup for little logic); generating TS types from FastAPI's OpenAPI schema (no hand-kept copy, but another tool); CORS on FastAPI instead of a proxy.
 - **Why:**
+
+## Phase 9: packaging and deployment
+
+### One server for API and frontend in production
+- **Chose:** FastAPI serves the built React app (`web/dist`) at `/` when it exists, mounted after all `/api` routes; `GET /api/health` answers without calling Gemini or Google. The server refuses to start without `GOOGLE_API_KEY`, with a message saying where to put it.
+- **Alternatives:** a separate static host or nginx for the frontend (two things to deploy, plus CORS); fail only on the first chat message (the problem shows up late, for a user).
+- **Why:**

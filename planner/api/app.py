@@ -13,10 +13,12 @@ in the calendar).
 """
 
 from datetime import datetime
+from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from google.adk.models.base_llm import BaseLlm
 from google.adk.runners import InMemoryRunner
 from pydantic import BaseModel, Field
@@ -63,7 +65,11 @@ class ApplyOut(BaseModel):
     already_there: int
 
 
-def create_app(tools: PlannerTools, model: str | BaseLlm | None = None) -> FastAPI:
+def create_app(
+    tools: PlannerTools,
+    model: str | BaseLlm | None = None,
+    static_dir: Path | None = None,
+) -> FastAPI:
     """The FastAPI app around one PlannerTools (calendar + parser) and one chat."""
     app = FastAPI(title="Calendar planner")
     runner = InMemoryRunner(agent=build_agent(tools, model), app_name=APP_NAME)
@@ -79,6 +85,11 @@ def create_app(tools: PlannerTools, model: str | BaseLlm | None = None) -> FastA
     @app.exception_handler(CalendarError)
     async def calendar_error(request: Request, error: CalendarError) -> JSONResponse:
         return JSONResponse(status_code=502, content={"detail": str(error)})
+
+    @app.get("/api/health")
+    def health() -> dict[str, str]:
+        """For Docker and Cloud Run: the server is up (no Gemini or Google call)."""
+        return {"status": "ok"}
 
     @app.post("/api/chat")
     async def chat(body: ChatIn) -> ChatOut:
@@ -143,6 +154,10 @@ def create_app(tools: PlannerTools, model: str | BaseLlm | None = None) -> FastA
         status[plan_id] = "rejected"
         return get_plan(plan_id)
 
+    if static_dir is not None:
+        # The built React app (web/dist), served by this same server in
+        # production. Mounted last, so every /api route above wins.
+        app.mount("/", StaticFiles(directory=static_dir, html=True), name="web")
     return app
 
 

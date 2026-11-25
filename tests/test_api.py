@@ -3,6 +3,7 @@ with the scripted Gemini, a fake parser and FakeCalendar. No network."""
 
 from collections.abc import AsyncGenerator
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -156,3 +157,20 @@ def test_expired_google_login_is_401() -> None:
     calendar.list_events = expired  # type: ignore[method-assign]
     response = api.get("/api/plans/plan-1")
     assert response.status_code == 401 and "login" in response.json()["detail"]
+
+
+# --- production: one server for API and frontend ---
+
+
+def test_health_needs_no_gemini_or_calendar() -> None:
+    api, _ = client([])
+    assert api.get("/api/health").json() == {"status": "ok"}
+
+
+def test_built_frontend_is_served_next_to_the_api(tmp_path: Path) -> None:
+    (tmp_path / "index.html").write_text("<title>Calendar planner</title>")
+    tools, _, _ = make_tools()
+    api = TestClient(create_app(tools, ScriptedGemini(script=[]), static_dir=tmp_path))
+    assert "Calendar planner" in api.get("/").text
+    assert api.get("/api/health").json() == {"status": "ok"}  # API still wins
+    assert api.get("/api/plans/plan-1").status_code == 404

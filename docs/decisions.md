@@ -602,3 +602,15 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** busy = timed events in the calendars the user shows in Google Calendar (`selected`) plus Study plan; skip all-day events, events marked free (`transparent`), cancelled events and declined invitations. Study plan is found by name plus a marker in its description, and created if missing. An event counts as ours only if it is in Study plan and tagged. Retries via the client's `num_retries` (429, 5xx, 403 rate limits, exponential backoff). Tests use the library's static discovery document and `HttpMockSequence`: no network.
 - **Alternatives:** read every calendar in the list, hidden ones too (birthdays, other people's calendars); count all-day events as busy (a holiday would block the whole day); find our calendar by name only (a user's own "Study plan" would be mistaken for ours); our own retry loop (the client already does what the docs advise).
 - **Why:**
+
+## Phase 8: web app
+
+### Phase 8 scope: a local single-user demo
+- **Chose:** `POST /chat` returns the whole reply (no streaming); drafts stay in memory; the backend reuses the desktop login (`token.json`); the week view is our own small React grid.
+- **Alternatives:** stream replies with server-sent events (nicer feel, more code on both sides); SQLModel + SQLite for drafts (survives restarts locally, but not on Cloud Run); web OAuth flow `/auth/login` + `/auth/callback` now (needed only on a server, Phase 9); FullCalendar (polished, large dependency with its own API).
+- **Why:**
+
+### Backend: thin layer, Confirm bypasses the agent
+- **Chose:** `create_app(tools, model)` wraps one `PlannerTools` and one ADK session; routes under `/api` (chat, get plan, apply, reject). Apply calls `apply_plan` directly: the agent has no write tool. Errors become HTTP codes: agent down 503, Google login needed 401, other calendar errors 502, new clash or rejected plan 409, unknown plan 404. Plan routes are plain `def` (run in a thread pool); `PLANNER_CALENDAR=google` switches from the demo FakeCalendar to Google.
+- **Alternatives:** an apply tool for the agent (the model could write without a click); routes without the `/api` prefix (harder to serve the built frontend from the same server later); all routes `async` (a slow Google call would block the whole server).
+- **Why:**

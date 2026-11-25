@@ -133,7 +133,7 @@ class PlannerTools:
         return {
             "status": "ok",
             "infeasible": True,
-            "reasons": _reasons(draft.result),
+            "reasons": reasons(draft.result),
         }
 
     def _plan(self, text: str) -> Result:
@@ -168,7 +168,7 @@ class PlannerTools:
             return {
                 "status": "infeasible",
                 "plan_id": plan_id,
-                "reasons": _reasons(result),
+                "reasons": reasons(result),
             }
         if result.schedule is None:  # TIMED_OUT
             return _error("The solver ran out of time; try a shorter horizon.")
@@ -260,7 +260,8 @@ def _free_windows(
     return windows
 
 
-def _reasons(result: SolveResult) -> list[str]:
+def reasons(result: SolveResult) -> list[str]:
+    """Why a plan is impossible, in words (for the agent and the web UI)."""
     if not result.conflicts:
         return ["There is not enough free time in the calendar for this request."]
     return [conflict.description for conflict in result.conflicts]

@@ -6,11 +6,13 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "dspy==3.5.0",
+    "fastapi>=0.165.0",
     "google-adk>=2.15.0",
     "google-api-python-client>=2.202.0",
     "google-auth-oauthlib>=1.5.0",
     "ortools>=9.15.6755",
     "pydantic>=2.14.4",
+    "uvicorn>=0.54.0",
 ]
 
 [build-system]
@@ -25,6 +27,7 @@ module-root = ""
 [dependency-groups]
 dev = [
     "google-api-python-client-stubs>=1.40.0",
+    "httpx2>=2.16.2",
     "mypy>=2.4.1",
     "pre-commit>=4.7.0",
     "pytest>=9.2.0",

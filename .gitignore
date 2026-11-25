@@ -34,3 +34,7 @@ htmlcov/
 .vscode/
 .idea/
 .claude/settings.local.json
+
+# --- Frontend ----------------------------------------------------------------
+web/node_modules/
+web/dist/

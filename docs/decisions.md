@@ -614,3 +614,8 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `create_app(tools, model)` wraps one `PlannerTools` and one ADK session; routes under `/api` (chat, get plan, apply, reject). Apply calls `apply_plan` directly: the agent has no write tool. Errors become HTTP codes: agent down 503, Google login needed 401, other calendar errors 502, new clash or rejected plan 409, unknown plan 404. Plan routes are plain `def` (run in a thread pool); `PLANNER_CALENDAR=google` switches from the demo FakeCalendar to Google.
 - **Alternatives:** an apply tool for the agent (the model could write without a click); routes without the `/api` prefix (harder to serve the built frontend from the same server later); all routes `async` (a slow Google call would block the whole server).
 - **Why:**
+
+### Frontend: plain React + TypeScript, layout logic as tested pure functions
+- **Chose:** a hand-written Vite project in `web/` (React 19.3.1, Vite 8.3.8, TypeScript 7.0.2, Vitest 5.1.1, exact versions + `package-lock.json`). Time-to-grid logic (Zurich time via `Intl`, Monday of the week, position in 07:00-24:00) lives in `week.ts` and is unit-tested, including daylight saving; components only render. `api.ts` mirrors the Pydantic models as TypeScript types. Dev: Vite proxies `/api` to FastAPI (no CORS). CI gets a `web` job (typecheck, tests, build).
+- **Alternatives:** `npm create vite` template (more boilerplate files to explain); component tests with a browser DOM (jsdom/Testing Library: more setup for little logic); generating TS types from FastAPI's OpenAPI schema (no hand-kept copy, but another tool); CORS on FastAPI instead of a proxy.
+- **Why:**

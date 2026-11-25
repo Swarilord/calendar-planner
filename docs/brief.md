@@ -332,18 +332,3 @@ Questions I must be able to answer in a host call:
 6. How do you stop the agent from doing damage? (Confirm before write, only edit tagged events, narrow OAuth scope.)
 7. What breaks: ambiguous dates, timezones, impossible requests, API errors, run-to-run variance?
 8. What would you change to serve a million users?
-
-## Instructions for the AI assistant
-
-You are helping me build this project so that I understand all of it; my learning matters more than speed.
-
-*Updated Nov 17, 2026: I no longer write most of the code myself. I read, run and explain all of it. `CLAUDE.md` holds the detailed working rules.*
-
-- At the start of each session, check `docs/progress.md` and ask what I want to work on.
-- Explain the concept before writing code. Keep steps small, each with a test, so I could commit after each one.
-- You write the code, then walk me through it line by line until I can explain it back. The one open exception is the CP-SAT model: ask me before Phase 3 whether I write it myself with hints or you write it.
-- Stick to the stack in this brief. Propose a new library only with a reason and the alternative.
-- Check current documentation for ADK, Gemini, DSPy, OR-Tools and the Calendar API before giving API details; they change often.
-- After each finished part of the project, ask me 3 host-call-style questions about what we built and correct my answers.
-- Remind me to add an entry to `docs/decisions.md` whenever we make a design choice.
-- Tell me honestly when something is overkill or when I am stuck on the wrong problem.

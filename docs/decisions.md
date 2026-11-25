@@ -587,3 +587,8 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `apply_plan` treats a block as already written if an app-created event has the same title, start and end; it creates only the missing blocks. Before writing it reads the calendar again; if any missing block now clashes with another event, it writes nothing and returns the clashes.
 - **Alternatives:** match by `plan_id` + block number (plan ids restart per session, so an old "plan-1" could be mistaken for a new one); a per-block id stored as an extra tag (more tags to keep in sync); client-chosen Google event ids (Google-only, FakeCalendar would differ); write what fits and skip clashing blocks (a half-applied plan the user didn't confirm).
 - **Why:**
+
+### Auth: never open a browser from the app; scopes checked on the saved token
+- **Chose:** `get_credentials` loads `token.json`, refreshes it if expired, and otherwise raises `LoginRequiredError` naming the login command (`python -m planner.calendar.auth`); only that command opens the browser. The token is loaded without passing scopes and checked with `has_scopes`, so a token from an older scope list forces a new login. `token.json` is written with mode 600 on every save.
+- **Alternatives:** log in automatically whenever needed, as the quickstart does (a server or test would hang waiting for a browser); pass the scopes when loading, as the quickstart does (a scope change goes unnoticed until API calls fail with 403); default file permissions (other users on the machine could read the token).
+- **Why:**

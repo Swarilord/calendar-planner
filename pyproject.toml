@@ -55,9 +55,10 @@ files = ["planner", "experiments", "tests"]
 # Teaches mypy Pydantic rules, e.g. that frozen models cannot be assigned to.
 plugins = ["pydantic.mypy"]
 
-# DSPy ships no type information: accept its imports as untyped (Any).
+# DSPy and google-auth-oauthlib ship no type information: accept their
+# imports as untyped (Any).
 [[tool.mypy.overrides]]
-module = ["dspy", "dspy.*"]
+module = ["dspy", "dspy.*", "google_auth_oauthlib", "google_auth_oauthlib.*"]
 ignore_missing_imports = true
 
 # DSPy signatures must subclass dspy.Signature, which mypy only sees as Any.
@@ -68,3 +69,9 @@ disallow_subclassing_any = false
 [tool.pytest]
 testpaths = ["tests"]
 addopts = ["--strict-markers"]
+
+# google-auth's Credentials methods (refresh, has_scopes, to_json, ...) have no
+# type hints; allow calling them only in the module that wraps them.
+[[tool.mypy.overrides]]
+module = ["planner.calendar.auth", "tests.test_auth"]
+disallow_untyped_calls = false

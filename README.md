@@ -5,8 +5,9 @@ Thursday evening; keep Wednesday evening free"). It reads your Google Calendar,
 plans study blocks around your lectures with a **constraint solver**, shows you a
 draft, and writes the blocks to your calendar only after you click **Confirm**.
 
-<!-- Demo GIF: record it as described at the end, save as docs/demo.gif, then use:
-![Demo: a request in the chat becomes a draft in the week view, then Confirm](docs/demo.gif) -->
+![Demo: two requests become drafts in the week view (blue), Confirm writes them (green)](docs/demo.gif)
+
+*Demo on the fake calendar (a week of lectures). Typing is sped up and waiting for Gemini is cut.*
 
 **The idea in one line:** the LLM translates, the solver decides, a checker
 verifies, and the LLM explains.

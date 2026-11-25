@@ -6,6 +6,8 @@ repos:
     hooks:
       - id: detect-private-key
       - id: check-added-large-files
+        # The README's demo GIF (~0.8 MB) is the one deliberate large file.
+        exclude: ^docs/demo\.gif$
       - id: check-yaml
       - id: check-toml
       - id: end-of-file-fixer

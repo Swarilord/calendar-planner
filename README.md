@@ -13,6 +13,19 @@ nothing is written to your calendar until you click Confirm.
 
 ## How it works
 
+```
+ Web UI (React)          FastAPI backend                 Agent (Gemini + ADK)
+ chat + week view ──────► /api/chat ────────────────────► chooses a tool
+       │                                                       │
+       │ Confirm                                               ▼
+       └──────────► /api/plans/{id}/apply        propose_plan: text ─► parser (DSPy + Gemini)
+                         │                                      ─► PlanRequest (Pydantic)
+                         ▼                                      ─► CP-SAT solver (OR-Tools)
+                   apply_plan ──► Google Calendar               ─► checker ─► draft
+                   (idempotent,    ("Study plan" calendar,
+                    re-checks)      tagged events only)
+```
+
 The LLM only handles language. A Gemini agent (Google ADK) talks to you and
 calls tools; one of them parses the request into a typed `PlanRequest` using
 DSPy. The scheduling itself is an OR-Tools CP-SAT model: deadlines, block

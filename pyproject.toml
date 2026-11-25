@@ -73,5 +73,5 @@ addopts = ["--strict-markers"]
 # google-auth's Credentials methods (refresh, has_scopes, to_json, ...) have no
 # type hints; allow calling them only in the module that wraps them.
 [[tool.mypy.overrides]]
-module = ["planner.calendar.auth", "tests.test_auth"]
+module = ["planner.calendar.auth", "tests.test_auth", "tests.test_google_calendar"]
 disallow_untyped_calls = false

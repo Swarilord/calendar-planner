@@ -592,3 +592,13 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** `get_credentials` loads `token.json`, refreshes it if expired, and otherwise raises `LoginRequiredError` naming the login command (`python -m planner.calendar.auth`); only that command opens the browser. The token is loaded without passing scopes and checked with `has_scopes`, so a token from an older scope list forces a new login. `token.json` is written with mode 600 on every save.
 - **Alternatives:** log in automatically whenever needed, as the quickstart does (a server or test would hang waiting for a browser); pass the scopes when loading, as the quickstart does (a scope change goes unnoticed until API calls fail with 403); default file permissions (other users on the machine could read the token).
 - **Why:**
+
+### Amendment: third scope calendar.calendarlist.readonly
+- **Chose:** add `calendar.calendarlist.readonly`. Found in the API reference: `calendarList.list` needs a calendar-list scope, and without the list the app can't find subscribed calendars (lecture timetable) or its own Study plan calendar after a restart. It only shows which calendars exist; it changes nothing.
+- **Alternatives:** read only `primary` (misses subscribed calendars); store the Study plan calendar's id in a local file (lost on Cloud Run, and still no subscribed calendars); `calendar.readonly` (also covers settings and ACLs, broader).
+- **Why:**
+
+### GoogleCalendar: what counts as busy, how our calendar is found
+- **Chose:** busy = timed events in the calendars the user shows in Google Calendar (`selected`) plus Study plan; skip all-day events, events marked free (`transparent`), cancelled events and declined invitations. Study plan is found by name plus a marker in its description, and created if missing. An event counts as ours only if it is in Study plan and tagged. Retries via the client's `num_retries` (429, 5xx, 403 rate limits, exponential backoff). Tests use the library's static discovery document and `HttpMockSequence`: no network.
+- **Alternatives:** read every calendar in the list, hidden ones too (birthdays, other people's calendars); count all-day events as busy (a holiday would block the whole day); find our calendar by name only (a user's own "Study plan" would be mistaken for ours); our own retry loop (the client already does what the docs advise).
+- **Why:**

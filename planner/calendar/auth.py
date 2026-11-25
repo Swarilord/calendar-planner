@@ -23,6 +23,8 @@ SCOPES = [
     "https://www.googleapis.com/auth/calendar.app.created",
     # Read events on all calendars (lectures may be in a subscribed calendar).
     "https://www.googleapis.com/auth/calendar.events.readonly",
+    # See which calendars exist (to find them; changes nothing).
+    "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
 ]
 CREDENTIALS_FILE = Path("credentials.json")
 TOKEN_FILE = Path("token.json")

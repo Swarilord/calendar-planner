@@ -37,3 +37,20 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -t calendar-planner .
+      # Start the image and ask the health endpoint. The key is a dummy:
+      # /api/health never calls Gemini.
+      - run: docker run -d --name app -p 8080:8080 -e GOOGLE_API_KEY=dummy calendar-planner
+      - run: |
+          for i in $(seq 1 30); do
+            curl -fs localhost:8080/api/health && exit 0
+            sleep 1
+          done
+          docker logs app
+          exit 1
+      - run: curl -fs localhost:8080/ | grep "<title>Calendar planner</title>"

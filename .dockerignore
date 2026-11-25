@@ -1,0 +1,18 @@
+# Keep secrets and local junk out of the build context (and the image).
+.env
+.env.*
+token*.json
+credentials*.json
+client_secret*.json
+.git
+.venv
+**/__pycache__
+.mypy_cache
+.pytest_cache
+.ruff_cache
+web/node_modules
+web/dist
+evals/results
+docs
+experiments
+tests

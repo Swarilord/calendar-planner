@@ -626,3 +626,13 @@ One entry per decision: what I chose, the alternatives, and why (in my own words
 - **Chose:** FastAPI serves the built React app (`web/dist`) at `/` when it exists, mounted after all `/api` routes; `GET /api/health` answers without calling Gemini or Google. The server refuses to start without `GOOGLE_API_KEY`, with a message saying where to put it.
 - **Alternatives:** a separate static host or nginx for the frontend (two things to deploy, plus CORS); fail only on the first chat message (the problem shows up late, for a user).
 - **Why:**
+
+### Docker image: multi-stage, no secrets, verified in CI
+- **Chose:** a two-stage Dockerfile (Node 24 builds `web/dist`; `python:3.13-slim` + uv 0.13.9 runs uvicorn as a non-root user on `$PORT`). Secrets and local files are kept out by `.dockerignore`; `GOOGLE_API_KEY` is passed at run time. The hosted demo uses the fake calendar. A CI job builds the image, starts it and checks `/api/health` and the page, since Docker is not installed locally.
+- **Alternatives:** one stage with Node and Python (bigger image, build tools in production); bake the key into the image (anyone with the image has the key); install Docker Desktop and test only locally (CI checks every push on a clean machine).
+- **Why:**
+
+### No Cloud Run deployment (no billing)
+- **Chose:** keep the project billing-free: the image is deployable and the Cloud Run steps are documented in the README, but not run. Could not confirm in Google's docs during this session (pages did not load); to my knowledge Cloud Run, Cloud Build and Artifact Registry need a billing account linked to the project even within the free tier.
+- **Alternatives:** link billing with a budget alert and stay in the free tier (a live URL for the demo, small risk of charges); a free host outside Google Cloud (another platform to learn and explain).
+- **Why:**

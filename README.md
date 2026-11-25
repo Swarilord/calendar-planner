@@ -1,182 +1,75 @@
-# Calendar Planning Agent
+# calendar-planner
 
-Tell it in plain English what you need to get done ("Analysis sheet, about 4h, due
-Thursday evening; keep Wednesday evening free"). It reads your Google Calendar,
-plans study blocks around your lectures with a **constraint solver**, shows you a
-draft, and writes the blocks to your calendar only after you click **Confirm**.
+Plan study time into Google Calendar by describing it in a sentence.
 
-![Demo: two requests become drafts in the week view (blue), Confirm writes them (green)](docs/demo.gif)
+You type something like *"Analysis sheet, about 4h, due Thursday evening, keep
+Wednesday evening free"*. Gemini turns that into a structured request, a
+constraint solver finds slots around your lectures and other events, and
+nothing is written to your calendar until you click Confirm.
 
-*Demo on the fake calendar (a week of lectures). Typing is sped up and waiting for Gemini is cut.*
+![Demo](docs/demo.gif)
 
-**The idea in one line:** the LLM translates, the solver decides, a checker
-verifies, and the LLM explains.
+<sub>Fake calendar with a week of lectures. Typing is sped up and the wait for Gemini is cut.</sub>
 
 ## How it works
 
-```
- Web UI (React)          FastAPI backend                 Agent (Gemini + ADK)
- chat + week view ──────► /api/chat ────────────────────► chooses a tool
-       │                                                       │
-       │ Confirm                                               ▼
-       └──────────► /api/plans/{id}/apply        propose_plan: text ─► parser (DSPy + Gemini)
-                         │                                      ─► PlanRequest (Pydantic)
-                         ▼                                      ─► CP-SAT solver (OR-Tools)
-                   apply_plan ──► Google Calendar               ─► checker ─► draft
-                   (idempotent,    ("Study plan" calendar,
-                    re-checks)      tagged events only)
-```
+The LLM only handles language. A Gemini agent (Google ADK) talks to you and
+calls tools; one of them parses the request into a typed `PlanRequest` using
+DSPy. The scheduling itself is an OR-Tools CP-SAT model: deadlines, block
+lengths, day hours, a daily limit and a soft lunch break. A separate checker
+re-validates every plan before you see it, and when a request can't fit, the
+solver reports which constraint is the problem.
 
-| Part | Where | LLM? |
-|---|---|---|
-| Conversation, tool choice, wording the answer | [planner/agent](planner/agent) (Google ADK) | yes |
-| Text → structured request (`PlanRequest`) | [planner/parser](planner/parser) (DSPy, versioned prompts) | yes |
-| Validation of the request | [schemas.py](planner/parser/schemas.py) (Pydantic) | no |
-| Scheduling, and *why* something is impossible | [planner/solver](planner/solver) (CP-SAT) | no |
-| Independent check of every plan | [planner/checker](planner/checker) | no |
-| Calendar read/write | [planner/calendar](planner/calendar) | no |
-| Web API and UI | [planner/api](planner/api), [web](web) | no |
-
-### Safety: how the app avoids damaging your calendar
-
-1. **Google's scope:** the app may only write to the calendar it created itself
-   ("Study plan"); everything else is read-only.
-2. **Confirm before write:** the agent has no tool that writes. Only the
-   Confirm button calls the backend's apply step.
-3. **Re-check before writing:** if a new event clashes since the preview,
-   nothing is written.
-4. **Tags:** the app edits or deletes only events tagged `created_by=planner`.
-5. **Idempotent apply:** clicking Confirm twice, or retrying after a crash,
-   never creates duplicates.
+Writing to the calendar is kept deliberately boring. The app can only write to
+its own "Study plan" calendar (OAuth scope `calendar.app.created`), only after
+Confirm, and applying the same plan twice doesn't create duplicates.
 
 ## Results
 
-Evaluated on 50 hand-checked requests (35 train, 15 held-out test), with
-`gemini-3.5-flash-lite`. **Success** = the right "impossible" answer, or a plan
-that breaks no rule when checked against the correct (gold) request.
+50 hand-checked requests, 15 of them held out for testing,
+`gemini-3.5-flash-lite`:
 
-| Approach | Test success |
+| | Test success |
 |---|---|
-| Gemini plans directly (Baseline A, two runs) | 73%, 67% |
-| Parser + solver, hand-written prompt (Baseline B) | 93% |
-| Parser + solver, GEPA-optimised prompt + hand fix | **100%** (15/15) |
+| Gemini schedules directly | 67-73% (two runs) |
+| Gemini parses, solver schedules | 93% |
+| Same, with a GEPA-optimised parser prompt | 100% |
 
-The parser + solver approach beat direct LLM planning in every run on both
-splits. Direct planning failed on totals and rules; parser + solver failed
-only where the parser misread the wording. With 15 test cases, one case is
-about 7 points, so the comparison is a clear signal, not a precise number.
-Details and error analysis: [evals/README.md](evals/README.md).
+The test set is small, so read this as a direction rather than exact numbers.
+The remaining mistakes are almost all the parser misreading wording. Details
+in [evals/README.md](evals/README.md).
 
-## Run it locally
+## Running it
 
-Requirements: [uv](https://docs.astral.sh/uv/), Node 24, a Gemini API key
-(Google AI Studio, free tier is enough).
+You need [uv](https://docs.astral.sh/uv/), Node 24 and a Gemini API key.
 
 ```bash
-uv sync                                   # Python dependencies
-cp .env.example .env                      # then put your GOOGLE_API_KEY in .env
-cd web && npm ci && cd ..                 # frontend dependencies
+uv sync
+cp .env.example .env          # add your GOOGLE_API_KEY
+cd web && npm ci && cd ..
+
+uv run uvicorn planner.api.main:app --reload    # backend
+cd web && npm run dev                           # frontend: http://localhost:5173
 ```
 
-**Web app** (two terminals; the calendar is a fake week of lectures):
+This runs on a fake calendar. To use your real one, create a Google Cloud OAuth
+client (desktop app) with the Calendar API scopes `calendar.app.created`,
+`calendar.events.readonly` and `calendar.calendarlist.readonly`, save it as
+`credentials.json`, log in once with `uv run python -m planner.calendar.auth`
+and start the backend with `PLANNER_CALENDAR=google`.
 
-```bash
-uv run uvicorn planner.api.main:app --reload       # terminal 1: backend, port 8000
-cd web && npm run dev                              # terminal 2: open http://localhost:5173
-```
+Tests run offline: `uv run pytest` and `cd web && npm test`.
 
-If Gemini is busy, try a lighter model: prefix the backend command with
-`PLANNER_MODEL=gemini-3.5-flash-lite`.
-
-**With your real Google Calendar:** create a Google Cloud project with the
-Calendar API, an OAuth client of type *Desktop app* (save it as
-`credentials.json`, git-ignored) and the scopes `calendar.app.created`,
-`calendar.events.readonly` and `calendar.calendarlist.readonly`. Then:
-
-```bash
-uv run python -m planner.calendar.auth            # log in once in the browser
-PLANNER_CALENDAR=google uv run uvicorn planner.api.main:app
-```
-
-**Terminal chat** instead of the web app: `uv run python -m experiments.planner_agent.chat`
-
-### Checks
-
-```bash
-uv run pytest            # ~400 tests, no network (fake Gemini, fake calendar)
-uv run ruff check . && uv run mypy
-cd web && npm test && npm run typecheck
-```
-
-### Evals and prompt optimisation (use Gemini quota)
-
-```bash
-uv run python -m planner.evals.run --baseline parser_solver --split train --pause 5
-uv run python -m planner.evals.run --baseline direct --split train --pause 5
-uv run python -m planner.evals.optimize --budget 150     # GEPA, train split only
-```
-
-## Docker and deployment
-
-The image builds the frontend and serves it from the same FastAPI server:
+With Docker:
 
 ```bash
 docker build -t calendar-planner .
-docker run -p 8080:8080 -e GOOGLE_API_KEY=... calendar-planner   # http://localhost:8080
+docker run -p 8080:8080 -e GOOGLE_API_KEY=... calendar-planner
 ```
-
-CI builds this image and checks `/api/health` on every push. The project is
-not deployed: Cloud Run needs a billing account, which this project
-deliberately doesn't use. With billing enabled, deployment would be:
-
-```bash
-gcloud secrets create gemini-key --data-file=-          # paste the key, Ctrl+D
-gcloud run deploy calendar-planner --source . --region europe-west6 \
-  --set-secrets GOOGLE_API_KEY=gemini-key:latest --allow-unauthenticated
-```
-
-A public deployment should stay on the fake calendar: the app is single-user
-(see below).
 
 ## Limitations
 
-- **Single user, state in memory.** Drafts live in the server's memory (a
-  restart forgets unconfirmed drafts), there is one chat session, and one
-  Google login (`token.json`). Multiple users would need a database for drafts,
-  a web OAuth flow with per-user tokens, and authentication on the API.
-- **Parser mistakes are the main failure mode.** E.g. "fit 20 hours" is read
-  as a 20-hour daily limit; deadlines on daylight-saving days can be off by an
-  hour.
-- **Moved events:** if you drag one of the app's events to another time, the
-  app no longer recognises it as part of the plan.
-- **Free-tier Gemini** can be slow or rate-limited; the app reports this
-  instead of guessing.
-
-## Project layout
-
-```
-planner/
-  agent/      ADK agent and its tools (no write tool)
-  parser/     DSPy parser, PlanRequest schema, versioned prompts
-  solver/     CP-SAT model and infeasibility explanations
-  checker/    independent rule checker
-  calendar/   CalendarBackend, FakeCalendar, GoogleCalendar, OAuth, apply_plan
-  api/        FastAPI app
-  evals/      dataset, baselines, scoring, GEPA
-web/          React + TypeScript (Vite) frontend
-evals/        eval cases, results, error analysis
-docs/         brief and design decisions
-```
-
-Every design choice is recorded with its alternatives in
-[docs/decisions.md](docs/decisions.md).
-
-## Recording the demo GIF
-
-Run the web app, record the screen with QuickTime (File → New Screen
-Recording, select the browser window), then convert:
-
-```bash
-brew install ffmpeg
-ffmpeg -i demo.mov -vf "fps=10,scale=1000:-1" docs/demo.gif
-```
+- Single user: drafts live in memory and there is one Google login.
+- The parser still misreads some phrasings, e.g. "fit 20 hours" becomes a
+  20-hour daily limit.
+- Free-tier Gemini is sometimes slow or rate-limited.
